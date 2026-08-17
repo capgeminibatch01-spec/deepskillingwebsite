@@ -17,10 +17,10 @@
 
 <!-- ================= NAVBAR ================= -->
 <nav class="navbar ds-navbar">
-  <div class="container ds-shell">
+  <div class="container-fluid px-3 px-lg-4">
     <span class="navbar-brand mb-0">
-      <span class="ds-brand-mark"><i class="bi bi-mortarboard-fill"></i></span>
-      Deep Skilling Training
+      <span class="ds-brand-logo"><img src="images/mafoi_logo.png" alt="The Ma Foi Foundation"></span>
+      <span class="d-none d-sm-inline ds-nav-title">Admin Dashboard</span>
     </span>
     <span class="ds-nav-tag d-none d-sm-inline">Registration</span>
   </div>
@@ -49,6 +49,12 @@
        EWS certificate ready before you begin — all fields marked <strong>*</strong> are required.</p>
   </div>
 </header>
+
+<div class="ds-stepper">
+  <div class="step active"><span class="dot">1</span>Mobilization</div>
+  <div class="line"></div>
+  <div class="step"><span class="dot">2</span>Enrolment</div>
+</div>
 
 <main class="container ds-shell py-4">
 
@@ -450,12 +456,12 @@
 
     <!-- ================= SUBMIT ================= -->
     <div class="ds-card">
-      <div class="ds-section-body">
+      <div class="ds-section-body text-center">
         <p class="ds-help mb-3">
           By submitting, you confirm that the details and documents provided are accurate and
           belong to you. You will receive a Ma Foi ID on the next screen — please save it.
         </p>
-        <button type="submit" class="btn btn-ds px-5" id="submitBtn">
+        <button type="submit" class="btn btn-ds btn-ds-sm px-5" id="submitBtn">
           <span id="submitSpinner" class="ds-spinner d-none" aria-hidden="true"></span>
           <span id="submitLabel"><i class="bi bi-send-fill me-2"></i>Submit Registration</span>
         </button>

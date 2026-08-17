@@ -42,7 +42,26 @@ body {
   font-size: 15px;
   line-height: 1.55;
   overflow-x: hidden;
+  position: relative;
 }
+
+/* soft floating circles, like the reference sign-up screen */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--ds-400), var(--ds-800));
+  opacity: .18;
+  filter: blur(2px);
+  z-index: 0;
+  pointer-events: none;
+}
+body::before { width: 340px; height: 340px; top: -120px; left: -100px; }
+body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
+
+/* keep real content above the circles */
+.ds-navbar, .ds-progress, .ds-hero, main, .ds-login-wrap { position: relative; z-index: 1; }
 
 /* ------------------------------------------------------------------ */
 /* Navbar                                                              */
@@ -74,6 +93,30 @@ body {
   flex: 0 0 auto;
 }
 
+.ds-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 10px;
+  padding: .3rem .6rem;
+  flex: 0 0 auto;
+}
+.ds-brand-logo img {
+  height: 30px;
+  width: auto;
+  display: block;
+}
+.ds-nav-title {
+  color: rgba(255, 255, 255, .85);
+  font-weight: 600;
+  font-size: .95rem;
+  margin-left: .15rem;
+}
+
+@media (max-width: 400px) {
+  .ds-brand-logo img { height: 24px; }
+}
+
 .ds-navbar .ds-nav-tag {
   color: rgba(255, 255, 255, .72);
   font-size: .78rem;
@@ -89,8 +132,8 @@ body {
   background:
     radial-gradient(1100px 380px at 12% -30%, rgba(14, 75, 255, .16), transparent 62%),
     linear-gradient(180deg, var(--ds-100) 0%, var(--ds-50) 100%);
-  border-bottom: 1px solid var(--ds-200);
   padding: 2.4rem 0 2rem;
+  text-align: center;
 }
 
 .ds-hero h1 {
@@ -105,6 +148,8 @@ body {
   color: var(--ds-muted);
   margin-bottom: 0;
   max-width: 62ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ds-pill {
@@ -147,13 +192,41 @@ body {
 .ds-section-num {
   flex: 0 0 auto;
   width: 34px; height: 34px;
-  border-radius: 10px;
+  border-radius: 50%;               /* circle, not squircle */
   background: linear-gradient(140deg, var(--ds-600), var(--ds-800));
   color: #fff;
   display: grid; place-items: center;
   font-weight: 700;
   font-size: .92rem;
   box-shadow: 0 4px 12px rgba(14, 75, 255, .28);
+}
+
+/* new: stepper strip you can place above the form, matching the screenshot's
+   "1 — Basic Details   2 — Contact Details   3 — Verification" row */
+.ds-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: 1rem 0 1.4rem;
+}
+.ds-stepper .step {
+  display: flex; flex-direction: column; align-items: center; gap: .35rem;
+  font-size: .78rem; color: var(--ds-muted); font-weight: 600;
+}
+.ds-stepper .step .dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--ds-white); border: 2px solid var(--ds-200);
+  color: var(--ds-muted); font-weight: 700;
+}
+.ds-stepper .step.active .dot {
+  background: linear-gradient(140deg, var(--ds-600), var(--ds-800));
+  border-color: transparent; color: #fff;
+}
+.ds-stepper .step.active { color: var(--ds-900); }
+.ds-stepper .line {
+  width: 60px; height: 2px; background: var(--ds-200); margin-bottom: 1.1rem;
 }
 
 .ds-section-head h2 {
@@ -175,7 +248,24 @@ body {
 /* ------------------------------------------------------------------ */
 /* Form controls                                                       */
 /* ------------------------------------------------------------------ */
-.ds-field { margin-bottom: 1.15rem; }
+.ds-section-body .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  row-gap: 0;
+  margin: 0;
+}
+.ds-section-body .row > [class*="col-"] {
+  width: auto;
+  max-width: none;
+  padding: 0;
+  align-self: start;
+}
+.ds-section-body .row > .col-12 {
+  grid-column: 1 / -1;
+}
+
+.ds-field { margin-bottom: 1.6rem; }
 
 .ds-label {
   font-weight: 600;
@@ -193,6 +283,29 @@ body {
   color: var(--ds-muted);
   margin-bottom: .42rem;
   line-height: 1.45;
+}
+
+@media (min-width: 768px) {
+  .ds-label {
+    display: inline;
+    margin-bottom: 0;
+  }
+  .ds-label + .ds-help {
+    display: inline;
+    font-style: italic;
+    font-size: .78rem;
+    color: var(--ds-muted);
+    margin: 0 0 0 .4rem;
+  }
+  .ds-label + .ds-help::before { content: "("; }
+  .ds-label + .ds-help::after  { content: ")"; }
+
+  /* restore the gap before the input, since inline elements ignore margin-bottom */
+  .ds-field > .form-control,
+  .ds-field > .form-select,
+  .ds-field > .ds-file-drop {
+    margin-top: .45rem;
+  }
 }
 
 .form-control, .form-select {
@@ -317,6 +430,12 @@ body {
   transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
   min-height: 50px;
 }
+.btn-ds-sm {
+  padding: .58rem 1.3rem;
+  min-height: 42px;
+  font-size: .9rem;
+  box-shadow: 0 6px 16px rgba(14, 75, 255, .22);
+}
 
 .btn-ds:hover:not(:disabled) {
   color: #fff;
@@ -380,10 +499,17 @@ body {
   position: sticky;
   top: 0;
   z-index: 1020;
+  background: transparent;
+  padding: 1.1rem 0;
+}
+
+.ds-progress .container {
   background: rgba(255, 255, 255, .93);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--ds-200);
-  padding: .55rem 0;
+  border: 1px solid var(--ds-200);
+  border-radius: 999px;         /* pill shape, reads lighter than a big rounded box */
+  box-shadow: var(--ds-shadow-sm);
+  padding: .6rem 1.3rem;
 }
 
 .ds-progress-track {
@@ -576,7 +702,22 @@ body {
     var(--ds-50);
 }
 
-.ds-login-card { max-width: 420px; width: 100%; padding: 2rem 1.6rem; }
+.ds-login-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 2.4rem 1.6rem 2rem;
+  position: relative;
+  overflow: visible;
+}
+.ds-login-card::before {
+  content: "";
+  position: absolute;
+  top: -22px; left: 50%;
+  transform: translateX(-50%);
+  width: 64px; height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ds-400), var(--ds-800));
+}
 
 .ds-stat {
   background: var(--ds-white);
@@ -588,21 +729,35 @@ body {
   display: flex;
   align-items: center;
   gap: .9rem;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
-
+.ds-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ds-shadow-lg);
+}
+/* upgraded admin stat cards — circular gradient icon, lifted card */
+.ds-stat {
+  border-radius: var(--ds-radius-lg);
+  box-shadow: var(--ds-shadow);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.ds-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--ds-shadow-lg);
+}
 .ds-stat-icon {
   width: 44px; height: 44px;
-  border-radius: 12px;
+  border-radius: 50%;               /* circle, matches the section-num circles */
   display: grid; place-items: center;
   background: var(--ds-100);
   color: var(--ds-800);
   font-size: 1.18rem;
   flex: 0 0 auto;
 }
-
 .ds-stat-icon.solid {
   background: linear-gradient(140deg, var(--ds-600), var(--ds-800));
   color: #fff;
+  box-shadow: 0 6px 16px rgba(14, 75, 255, .3);
 }
 
 .ds-stat-label {
@@ -631,7 +786,7 @@ body {
 .ds-table { margin: 0; font-size: .845rem; white-space: nowrap; min-width: 1500px; }
 
 .ds-table thead th {
-  background: var(--ds-900);
+  background: linear-gradient(100deg, var(--ds-900), var(--ds-800));
   color: #fff;
   font-weight: 600;
   font-size: .74rem;
@@ -736,8 +891,8 @@ body {
 
 @media (max-width: 767.98px) {
   body { font-size: 15px; }
-
   .ds-hero { padding: 1.6rem 0 1.35rem; }
+  .ds-section-body .row { grid-template-columns: 1fr; }
   .ds-section-body { padding: 1.05rem; }
   .ds-section-head { padding: .95rem 1.05rem; }
   .ds-card { border-radius: 16px; }
