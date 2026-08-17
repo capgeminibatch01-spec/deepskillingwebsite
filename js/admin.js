@@ -248,7 +248,7 @@
         return;
       }
       try {
-        const filename = DS.exportRegistrations(registrations);
+        const filename = await DS.exportRegistrations(registrations);
         DS.showBanner("dashBanner", `Downloaded ${filename}`, false);
         setTimeout(() => DS.hideBanner("dashBanner"), 5000);
       } catch (err) {

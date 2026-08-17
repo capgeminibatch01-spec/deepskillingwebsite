@@ -4,11 +4,23 @@
    Every column is written with an explicit cell type so Excel cannot
    reinterpret a Ma Foi ID, an ID number or a mobile number as a number
    and drop leading characters or zeros.
+
+   Document name columns are exported as real Excel hyperlinks (backed
+   by short-lived signed URLs from the private bucket, generated at
+   export time) so the admin can click straight through to the file
+   instead of seeing plain, unclickable text.
    ===================================================================== */
 (function (DS) {
   "use strict";
 
-  // [header, accessor, type]  type: "s" = text, "d" = real date
+  // Signed links live for 7 days — long enough for the exported file to
+  // stay useful, short enough to respect the private bucket (§37).
+  const LINK_EXPIRY_SECONDS = 60 * 60 * 24 * 7;
+
+  // [header, accessor, type, pathAccessor?]
+  //   type: "s" = text, "d" = date, "dt" = datetime, "link" = hyperlink
+  //   pathAccessor is only present for "link" columns — it returns the
+  //   storage path used to generate the signed URL.
   const COLUMNS = [
     ["Ma Foi ID",                          (r) => r.mafoi_id,                   "s"],
     ["Type of unique ID",                  (r) => r.unique_id_type,             "s"],
@@ -24,14 +36,14 @@
     ["Do you belong to EWS category?",     (r) => r.ews_category,               "s"],
     ["Last Completed Education",           (r) => r.last_completed_education,   "s"],
     ["Degree / Specialization",            (r) => r.degree_specialization,      "s"],
-    ["Supporting document (Education)",    (r) => r.education_document_name,    "s"],
+    ["Supporting document (Education)",    (r) => r.education_document_name,    "link", (r) => r.education_document_path],
     ["Annual income",                      (r) => r.annual_income,              "s"],
     ["Occupation",                         (r) => r.occupation,                 "s"],
     ["If Student, Type of Institution",    (r) => r.institution_type || "",     "s"],
-    ["EWS Certification",                  (r) => r.ews_certificate_name,       "s"],
+    ["EWS Certification",                  (r) => r.ews_certificate_name,       "link", (r) => r.ews_certificate_path],
     ["Domain course",                      (r) => r.domain_course,              "s"],
     ["Are you a person with Disability?",  (r) => r.pwd_status,                 "s"],
-    ["PWD Certificate",                    (r) => r.pwd_certificate_name || "", "s"],
+    ["PWD Certificate",                    (r) => r.pwd_certificate_name || "", "link", (r) => r.pwd_certificate_path],
     ["Name of parent",                     (r) => r.parent_name,                "s"],
     ["Alternative Contact Number",         (r) => r.alternative_contact_number, "s"],
     ["Social Category",                    (r) => r.social_category,            "s"],
@@ -58,7 +70,26 @@
     return { t: "n", v: toSerial(localMs), z: "dd-mmm-yyyy hh:mm" };
   }
 
-  DS.exportRegistrations = function (rows) {
+  /** One signed URL per distinct storage path, fetched in parallel. */
+  async function signUrlsFor(paths) {
+    const unique = [...new Set(paths.filter(Boolean))];
+    const map = new Map();
+
+    await Promise.all(unique.map(async (path) => {
+      try {
+        const { data, error } = await DS.supabase.storage
+          .from(DS.BUCKET)
+          .createSignedUrl(path, LINK_EXPIRY_SECONDS);
+        if (!error && data) map.set(path, data.signedUrl);
+      } catch (err) {
+        console.error("excel signed url:", path, err);
+      }
+    }));
+
+    return map;
+  }
+
+  DS.exportRegistrations = async function (rows) {
     const sheet = {};
     const range = { s: { c: 0, r: 0 }, e: { c: COLUMNS.length - 1, r: rows.length } };
 
@@ -70,10 +101,27 @@
     // data rows, always ordered by serial_no
     const ordered = [...rows].sort((a, b) => a.serial_no - b.serial_no);
 
+    // Gather every document path across every row up front, then sign
+    // them all in parallel instead of one round trip per cell.
+    const linkColumns = COLUMNS.filter((col) => col[2] === "link");
+    const allPaths = ordered.flatMap((row) => linkColumns.map((col) => col[3](row)));
+    const urlMap = await signUrlsFor(allPaths);
+
     ordered.forEach((row, i) => {
       COLUMNS.forEach((col, c) => {
         const raw = col[1](row);
         const addr = XLSX.utils.encode_cell({ c, r: i + 1 });
+
+        if (col[2] === "link") {
+          const path = col[3](row);
+          const url = path ? urlMap.get(path) : null;
+          const label = raw == null ? "" : String(raw);
+          sheet[addr] = url
+            ? { t: "s", v: label, l: { Target: url, Tooltip: "Click to download" } }
+            : { t: "s", v: label };
+          return;
+        }
+
         sheet[addr] = col[2] === "d" || col[2] === "dt"
           ? dateCell(raw)
           : { t: "s", v: raw == null ? "" : String(raw) };
