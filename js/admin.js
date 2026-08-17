@@ -243,12 +243,18 @@
       DS.hideBanner("dashBanner");
       // Always export the latest committed state, never the cached table.
       await loadRegistrations();
-      if (!registrations.length) {
-        DS.showBanner("dashBanner", "There are no registrations to export yet.", true);
+
+      const rows = visibleRows();       // respects the search box + course filter
+      if (!rows.length) {
+        DS.showBanner("dashBanner",
+          registrations.length
+            ? "No registrations match your current search or filter."
+            : "There are no registrations to export yet.",
+          true);
         return;
       }
       try {
-        const filename = await DS.exportRegistrations(registrations);
+        const filename = await DS.exportRegistrations(rows);
         DS.showBanner("dashBanner", `Downloaded ${filename}`, false);
         setTimeout(() => DS.hideBanner("dashBanner"), 5000);
       } catch (err) {
