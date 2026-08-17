@@ -348,23 +348,25 @@
 
         if (!slotRes.ok) return handleServerFailure(slotRes);
 
-        // ---- 3. Upload directly to private storage ------------------
+        // ---- 3. Upload directly to private storage (in parallel) ----
         setSubmitting(true, "Uploading documents…");
-        for (const u of uploads) {
+        const uploadResults = await Promise.all(uploads.map((u) => {
           const slot = slotRes.slots[u.kind];
-          const { error } = await DS.supabase.storage
+          return DS.supabase.storage
             .from(DS.BUCKET)
             .uploadToSignedUrl(slot.path, slot.token, u.file, {
               contentType: DS.contentTypeFor(u.file.name),
               upsert: true,
             });
-          if (error) {
-            console.error("upload error:", error);
-            DS.showBanner("formBanner",
-              "We could not upload your documents. Please check your connection and try again.", true);
-            setSubmitting(false);
-            return;
-          }
+        }));
+
+        const failedUpload = uploadResults.find((r) => r.error);
+        if (failedUpload) {
+          console.error("upload error:", failedUpload.error);
+          DS.showBanner("formBanner",
+            "We could not upload your documents. Please check your connection and try again.", true);
+          setSubmitting(false);
+          return;
         }
 
         // ---- 4. Submit for validation + atomic ID allocation --------
@@ -423,5 +425,10 @@
     overlay.classList.add("show");
     document.body.style.overflow = "hidden";
     setTimeout(() => overlay.focus && overlay.focus(), 100);
+
+    const againBtn = $("submitAnotherBtn");
+    if (againBtn) {
+      againBtn.addEventListener("click", () => window.location.reload());
+    }
   }
 })(window.DS);
