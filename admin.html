@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a2350">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin · Deep Skilling Training</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="css/styles.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar ds-navbar">
+  <div class="container-fluid px-3 px-lg-4">
+    <span class="navbar-brand mb-0">
+      <span class="ds-brand-mark"><i class="bi bi-shield-lock-fill"></i></span>
+      <span class="d-none d-sm-inline">Deep Skilling Training — Admin Dashboard</span>
+      <span class="d-sm-none">DST Admin</span>
+    </span>
+    <div class="d-flex align-items-center gap-2" id="navActions" hidden>
+      <span class="ds-nav-tag d-none d-md-inline" id="adminEmail"></span>
+      <button class="btn btn-ds-outline btn-sm" id="logoutBtn" type="button">
+        <i class="bi bi-box-arrow-right me-1"></i>Logout
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= LOGIN ================= -->
+<section class="ds-login-wrap" id="loginView">
+  <div class="ds-card ds-login-card">
+    <div class="text-center mb-4">
+      <div class="ds-stat-icon solid mx-auto mb-3"><i class="bi bi-person-lock"></i></div>
+      <h1 class="h4 fw-bold mb-1" style="color:var(--ds-900)">Admin Login</h1>
+      <p class="ds-help mb-0">Authorised programme administrators only.</p>
+    </div>
+
+    <div class="ds-banner ds-banner-error" id="loginBanner" role="alert"><i class="bi bi-exclamation-triangle-fill"></i><span></span></div>
+
+    <form id="loginForm" novalidate>
+      <div class="ds-field" data-field="login_email">
+        <label class="ds-label" for="login_email">Email</label>
+        <input type="email" class="form-control" id="login_email" autocomplete="username" required>
+        <div class="ds-error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+      </div>
+
+      <div class="ds-field" data-field="login_password">
+        <label class="ds-label" for="login_password">Password</label>
+        <input type="password" class="form-control" id="login_password" autocomplete="current-password" required>
+        <div class="ds-error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+      </div>
+
+      <button type="submit" class="btn btn-ds w-100 mt-2" id="loginBtn">
+        <span class="ds-spinner d-none" id="loginSpinner" aria-hidden="true"></span>
+        <span id="loginLabel">Sign in</span>
+      </button>
+    </form>
+
+    <p class="text-center mt-4 mb-0">
+      <a href="index.html" class="ds-help text-decoration-none">
+        <i class="bi bi-arrow-left me-1"></i>Back to registration
+      </a>
+    </p>
+  </div>
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+<main class="container-fluid px-3 px-lg-4 py-4" id="dashboardView" hidden>
+
+  <div class="ds-banner" id="dashBanner" role="status" aria-live="polite"><i class="bi bi-info-circle-fill"></i><span></span></div>
+
+  <!-- summary -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="ds-stat">
+        <div class="ds-stat-icon solid"><i class="bi bi-people-fill"></i></div>
+        <div>
+          <div class="ds-stat-label">Total registrations</div>
+          <div class="ds-stat-value" id="statTotal">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="ds-stat">
+        <div class="ds-stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
+        <div>
+          <div class="ds-stat-label">Data Analytics</div>
+          <div class="ds-stat-value" id="statDA">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="ds-stat">
+        <div class="ds-stat-icon"><i class="bi bi-cpu-fill"></i></div>
+        <div>
+          <div class="ds-stat-label">Artificial Intelligence</div>
+          <div class="ds-stat-value" id="statAI">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="ds-stat">
+        <div class="ds-stat-icon"><i class="bi bi-shield-lock-fill"></i></div>
+        <div>
+          <div class="ds-stat-label">Cyber Security</div>
+          <div class="ds-stat-value" id="statCS">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- toolbar -->
+  <div class="ds-card mb-3">
+    <div class="ds-section-body py-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-12 col-lg-5">
+          <label class="visually-hidden" for="searchInput">Search registrations</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0" style="border-color:var(--ds-200)">
+              <i class="bi bi-search" style="color:var(--ds-400)"></i>
+            </span>
+            <input type="search" class="form-control border-start-0" id="searchInput"
+                   placeholder="Search Ma Foi ID, name, email or contact number">
+          </div>
+        </div>
+        <div class="col-8 col-lg-4">
+          <label class="visually-hidden" for="courseFilter">Filter by domain course</label>
+          <select class="form-select" id="courseFilter">
+            <option value="">All</option>
+            <option>Data Analytics</option>
+            <option>Artificial Intelligence</option>
+            <option>Cyber Security</option>
+          </select>
+        </div>
+        <div class="col-4 col-lg-3 d-flex gap-2 justify-content-lg-end">
+          <button class="btn btn-ds-outline flex-shrink-0" id="refreshBtn" type="button" title="Refresh">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+          <button class="btn btn-ds flex-grow-1 flex-lg-grow-0" id="excelBtn" type="button"
+                  style="padding:.55rem 1rem;min-height:auto">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+            <span class="d-none d-sm-inline">Download Excel</span>
+          </button>
+        </div>
+      </div>
+      <div class="ds-help mt-2 mb-0" id="resultCount"></div>
+    </div>
+  </div>
+
+  <!-- table -->
+  <div class="ds-card">
+    <div class="ds-table-wrap">
+      <table class="table ds-table align-middle">
+        <thead>
+          <tr>
+            <th>Ma Foi ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Date of Birth</th>
+            <th>Gender</th>
+            <th>State</th>
+            <th>District</th>
+            <th>Contact Number</th>
+            <th>Email</th>
+            <th>EWS</th>
+            <th>Last Completed Education</th>
+            <th>Degree / Specialization</th>
+            <th>Annual Income</th>
+            <th>Occupation</th>
+            <th>Institution</th>
+            <th>Domain Course</th>
+            <th>PWD</th>
+            <th>Parent Name</th>
+            <th>Alternative Contact Number</th>
+            <th>Social Category</th>
+            <th>Created Date</th>
+            <th>Documents</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="ds-empty" id="emptyState" hidden>
+      <i class="bi bi-inbox"></i>
+      <div id="emptyText">No registrations yet.</div>
+    </div>
+  </div>
+
+  <p class="ds-footer">Deep Skilling Training · Admin</p>
+</main>
+
+<!-- ================= DELETE MODAL ================= -->
+<div class="modal fade" id="deleteModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="deleteModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalTitle">Delete Registration?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="modalCloseX"></button>
+      </div>
+      <div class="modal-body">
+        <dl class="ds-confirm-list mb-3">
+          <dt>Ma Foi ID</dt><dd id="delMafoi">—</dd>
+          <dt>Student name</dt><dd id="delName">—</dd>
+          <dt>Email</dt><dd id="delEmail">—</dd>
+        </dl>
+        <p class="mb-0" style="font-size:.9rem;color:var(--ds-muted)">
+          This registration will be permanently deleted. All subsequent Ma Foi IDs will be
+          reindexed automatically, and the corresponding document names will also be updated.
+        </p>
+        <div class="ds-banner ds-banner-error mt-3" id="modalBanner" role="alert">
+          <i class="bi bi-exclamation-triangle-fill"></i><span></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ds-outline" data-bs-dismiss="modal" id="cancelDeleteBtn">Cancel</button>
+        <button type="button" class="btn btn-ds" id="confirmDeleteBtn" style="min-height:auto;padding:.6rem 1.15rem">
+          <span class="ds-spinner d-none" id="deleteSpinner" aria-hidden="true"></span>
+          <span id="deleteLabel"><i class="bi bi-trash me-1"></i>Delete &amp; Reindex</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/validation.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
