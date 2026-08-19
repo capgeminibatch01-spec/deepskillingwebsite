@@ -82,8 +82,8 @@ export function validateRegistration(d: any): FieldError[] {
 
   const idProof = str("id_proof");
   if (!idProof) e.push({ field: "id_proof", message: "Please enter your ID number." });
-  else if (!DIGITS.test(idProof)) {
-    e.push({ field: "id_proof", message: "ID proof must contain digits only — no spaces, dashes or letters." });
+  else if (!/^[A-Za-z0-9]+$/.test(idProof)) {
+    e.push({ field: "id_proof", message: "ID proof must contain only letters and numbers." });
   }
 
   req("first_name", "Please enter your first name.");

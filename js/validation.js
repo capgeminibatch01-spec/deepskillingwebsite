@@ -37,9 +37,9 @@ window.DS = window.DS || {};
   const RULES = {
     unique_id_type: (v) => (!v ? "Please select the type of unique ID." : null),
 
-    id_proof: (v) => {
+        id_proof: (v) => {
       if (!v) return "Please enter your ID number.";
-      if (!DIGITS.test(v)) return "Digits only — no spaces, dashes or letters.";
+      if (!/^[A-Za-z0-9]+$/.test(v)) return "Only letters and numbers allowed — no spaces or dashes.";
       if (v.length < 4) return "Please enter the full ID number.";
       return null;
     },

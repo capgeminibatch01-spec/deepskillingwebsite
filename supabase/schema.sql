@@ -128,7 +128,7 @@ create table if not exists public.registrations (
     'SC-1','ST-2','OBC-3','Gen-4','Prefer not to say-5')),
 
   -- ---- Format rules -------------------------------------------------
-  constraint reg_id_proof_chk    check (id_proof ~ '^[0-9]+$'),
+    constraint reg_id_proof_chk    check (id_proof ~ '^[A-Za-z0-9]+$'),
   constraint reg_contact_chk     check (contact_number ~ '^[0-9]{10}$'),
   constraint reg_alt_contact_chk check (alternative_contact_number ~ '^[0-9]{10}$'),
   constraint reg_email_chk       check (email ~ '^[a-z0-9]+([._%+-][a-z0-9]+)*@gmail\.com$'),
