@@ -1,4 +1,7 @@
-import { ALLOWED_EXTENSIONS, ALLOWED_MIME, DISTRICTS, ID_PROOF_PATTERNS, MAX_FILE_BYTES, OPTIONS } from "./constants.ts";
+import {
+  ALLOWED_EXTENSIONS, ALLOWED_MIME, DISTRICTS, ID_PROOF_PATTERNS, MAX_FILE_BYTES, OPTIONS,
+  PDF_ONLY_EXTENSIONS, PDF_ONLY_MIME, PDF_ONLY_KINDS,
+} from "./constants.ts";
 
 export interface FieldError { field: string; message: string; }
 
@@ -28,6 +31,10 @@ export function validateFileMeta(
   const errors: FieldError[] = [];
   const field = `${kind}_file`;
   const ext = extensionOf(filename);
+  const pdfOnly = (PDF_ONLY_KINDS as readonly string[]).includes(kind);
+  const extList = pdfOnly ? PDF_ONLY_EXTENSIONS : ALLOWED_EXTENSIONS;
+  const mimeList = pdfOnly ? PDF_ONLY_MIME : ALLOWED_MIME;
+  const typeLabel = pdfOnly ? "PDF" : "PDF or JPG";
 
   if (!filename) {
     errors.push({ field, message: "Please choose a file to upload." });
@@ -36,11 +43,11 @@ export function validateFileMeta(
   if (/[\\/]|\.\./.test(filename)) {
     errors.push({ field, message: "That file name is not allowed." });
   }
-  if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    errors.push({ field, message: "Please upload a PDF or JPG file." });
+  if (!extList.includes(ext)) {
+    errors.push({ field, message: `Please upload a ${typeLabel} file.` });
   }
-  if (!ALLOWED_MIME.includes((mime || "").toLowerCase())) {
-    errors.push({ field, message: "Please upload a PDF or JPG file." });
+  if (!mimeList.includes((mime || "").toLowerCase())) {
+    errors.push({ field, message: `Please upload a ${typeLabel} file.` });
   }
   if (!Number.isFinite(size) || size <= 0) {
     errors.push({ field, message: "That file appears to be empty." });
@@ -147,13 +154,9 @@ export function validateRegistration(d: any): FieldError[] {
   oneOf("last_completed_education", OPTIONS.last_completed_education, "Please select a valid education option.");
 
     const degree = str("degree_specialization");
-  if (str("last_completed_education") !== "1-Not completed formal education") {
-    if (!degree) e.push({ field: "degree_specialization", message: "Please select your degree / specialization." });
-    else if (!OPTIONS.degree_specialization.includes(degree as never)) {
-      e.push({ field: "degree_specialization", message: "Please select a valid degree / specialization." });
-    }
-  } else if (degree) {
-    e.push({ field: "degree_specialization", message: "Degree / Specialization does not apply when education is not completed." });
+  if (!degree) e.push({ field: "degree_specialization", message: "Please select your degree / specialization." });
+  else if (!OPTIONS.degree_specialization.includes(degree as never)) {
+    e.push({ field: "degree_specialization", message: "Please select a valid degree / specialization." });
   }
 
   req("annual_income", "Please select your annual income bracket.");

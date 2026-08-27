@@ -13,8 +13,14 @@
   ];
 
     const FILE_FIELDS = {
-    education: { input: "education_file", field: "education_file",
-                 required: () => val("last_completed_education") !== "1-Not completed formal education" },
+    marksheet_10th:        { input: "marksheet_10th_file",        field: "marksheet_10th_file",
+                              required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
+    marksheet_12th:        { input: "marksheet_12th_file",        field: "marksheet_12th_file",
+                              required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
+    marksheet_degree:      { input: "marksheet_degree_file",      field: "marksheet_degree_file",
+                              required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
+    marksheet_diploma_iti: { input: "marksheet_diploma_iti_file", field: "marksheet_diploma_iti_file",
+                              required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
     ews:       { input: "ews_file",       field: "ews_file",       required: () => true },
     pwd:       { input: "pwd_file",       field: "pwd_file",
                  required: () => val("pwd_status") === "Yes - 1" },
@@ -188,18 +194,15 @@
     const typeSelect = $("unique_id_type");
     const idProof = $("id_proof");
     const PLACEHOLDERS = {
-      "Aadhaar Card": "Enter 12-digit Aadhaar number",
-      "PAN Card": "Enter PAN number (e.g., GPWPD9017R)",
-      "Electoral Card": "Enter Electoral ID (e.g., ABC1234567)",
-      "Driving License": "Enter Driving License number",
-      "College ID": "Enter College ID",
-      "School 10th / 12th Marksheet": "Enter Roll / Register number",
+      "10th Marksheet": "Enter 10th Roll / Register Number",
+      "12th Marksheet": "Enter 12th Roll / Register Number",
+      "Degree Marksheet": "Enter Degree Register / Marksheet Number",
     };
     function applyConstraints() {
       const pattern = DS.ID_PROOF_PATTERNS[typeSelect.value];
       idProof.maxLength = pattern ? pattern.maxLength : 30;
       idProof.inputMode = pattern ? pattern.inputMode : "text";
-      idProof.placeholder = PLACEHOLDERS[typeSelect.value] || "e.g. GPWPD901R";
+      idProof.placeholder = PLACEHOLDERS[typeSelect.value] || "e.g. Roll Number / Register Number";
     }
     typeSelect.addEventListener("change", function () {
       // A value valid for the previous ID type is not necessarily valid
@@ -226,33 +229,13 @@
     applyConstraints();
   }
   /* ------------------------------------------------------------------ */
-  /* Last Completed Education → Degree / Education document              */
+  /* Last Completed Education — Degree / Specialization and Supporting   */
+  /* Documents are always shown and usable, regardless of the selected   */
+  /* education option (including "Not completed formal education").     */
   /* ------------------------------------------------------------------ */
   function wireEducation() {
     const education = $("last_completed_education");
-    const degreeWrap = $("degreeWrap");
-    const degreeSelect = $("degree_specialization");
-    const fileWrap = $("educationFileWrap");
-    const fileInput = $("education_file");
-    function sync() {
-      const notCompleted = education.value === "1-Not completed formal education";
-      degreeWrap.classList.toggle("show", !notCompleted);
-      degreeSelect.disabled = notCompleted;
-      degreeSelect.required = !notCompleted;
-      fileWrap.classList.toggle("show", !notCompleted);
-      fileInput.disabled = notCompleted;
-      fileInput.required = !notCompleted;
-      if (notCompleted) {
-        degreeSelect.value = "";
-        DS.clearFieldError("degree_specialization");
-        fileInput.value = "";
-        $("education_file_meta").classList.remove("show");
-        DS.clearFieldError("education_file");
-      }
-      updateProgress();
-    }
-    education.addEventListener("change", sync);
-    sync();
+    education.addEventListener("change", updateProgress);
   }
   /* ------------------------------------------------------------------ */
   /* Occupation → Institution (§11)                                      */
@@ -323,7 +306,7 @@
         meta.querySelector("span").textContent = `${file.name} · ${DS.formatBytes(file.size)}`;
         meta.classList.add("show");
 
-        const error = DS.validateFile(file, true);
+        const error = DS.validateFile(file, true, cfg.allowedExt, cfg.allowedMime);
         if (error) {
           DS.setFieldError(cfg.field, error);
           input.value = "";
@@ -456,7 +439,7 @@
       const input = $(cfg.input);
       if (!input || input.disabled) return;
       const file = input.files && input.files[0];
-      const error = DS.validateFile(file, cfg.required());
+      const error = DS.validateFile(file, cfg.required(), cfg.allowedExt, cfg.allowedMime);
       if (error) { DS.setFieldError(cfg.field, error); count++; }
     });
 

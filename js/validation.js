@@ -205,52 +205,33 @@ window.DS = window.DS || {};
   };
 
     DS.ID_PROOF_PATTERNS = {
-    "Aadhaar Card": {
-      regex: /^[0-9]{12}$/,
-      message: "Please enter a valid 12-digit Aadhaar number.",
-      maxLength: 12,
-      inputMode: "numeric",
-      normalize: (v) => v.replace(/\D/g, ""),
-    },
-    "PAN Card": {
-      regex: /^[A-Z]{5}[0-9]{4}[A-Z]$/,
-      message: "Please enter a valid PAN — 5 letters, 4 digits, 1 letter (e.g. GPWPD9017R).",
-      maxLength: 10,
-      inputMode: "text",
-      normalize: (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-    },
-    "Electoral Card": {
-      regex: /^[A-Z]{3}[0-9]{7}$/,
-      message: "Please enter a valid Voter ID / EPIC number — 3 letters, 7 digits (e.g. ABC1234567).",
-      maxLength: 10,
-      inputMode: "text",
-      normalize: (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-    },
-    "Driving License": {
-      regex: /^[A-Z0-9]{8,20}$/,
-      message: "Please enter a valid Driving Licence number.",
-      maxLength: 20,
-      inputMode: "text",
-      normalize: (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, ""),
-    },
-    "College ID": {
-      regex: /^[A-Za-z0-9]{4,20}$/,
-      message: "Please enter a valid College ID.",
-      maxLength: 20,
-      inputMode: "text",
-      normalize: (v) => v.replace(/[^A-Za-z0-9]/g, ""),
-    },
-    "School 10th / 12th Marksheet": {
-      regex: /^[A-Za-z0-9]{4,20}$/,
+    "10th Marksheet": {
+      regex: /^[A-Za-z0-9\/-]{3,25}$/,
       message: "Please enter a valid Roll Number / Register Number.",
-      maxLength: 20,
+      maxLength: 25,
       inputMode: "text",
-      normalize: (v) => v.replace(/[^A-Za-z0-9]/g, ""),
+      normalize: (v) => v.replace(/[^A-Za-z0-9\/-]/g, ""),
+    },
+    "12th Marksheet": {
+      regex: /^[A-Za-z0-9\/-]{3,25}$/,
+      message: "Please enter a valid Roll Number / Register Number.",
+      maxLength: 25,
+      inputMode: "text",
+      normalize: (v) => v.replace(/[^A-Za-z0-9\/-]/g, ""),
+    },
+    "Degree Marksheet": {
+      regex: /^[A-Za-z0-9\/-]{3,25}$/,
+      message: "Please enter a valid Register Number / Marksheet Number.",
+      maxLength: 25,
+      inputMode: "text",
+      normalize: (v) => v.replace(/[^A-Za-z0-9\/-]/g, ""),
     },
   };
   DS.MAX_FILE_BYTES = 10 * 1024 * 1024;
   DS.ALLOWED_EXT = ["pdf", "jpg", "jpeg"];
   DS.ALLOWED_MIME = ["application/pdf", "image/jpeg", "image/jpg"];
+  DS.PDF_ONLY_EXT = ["pdf"];
+  DS.PDF_ONLY_MIME = ["application/pdf"];
 
   const DIGITS = /^[0-9]+$/;
   const TEN_DIGITS = /^[0-9]{10}$/;
@@ -322,10 +303,7 @@ window.DS = window.DS || {};
 
     ews_category: (v) => (!v ? "Please answer the EWS question." : null),
     last_completed_education: (v) => (!v ? "Please select your last completed education." : null),
-        degree_specialization: (v, form) => {
-      if (form.last_completed_education === "1-Not completed formal education") return null;
-      return !v ? "Please select your degree / specialization." : null;
-    },
+        degree_specialization: (v) => (!v ? "Please select your degree / specialization." : null),
     annual_income: (v) => (!v ? "Please select your annual income bracket." : null),
     occupation: (v) => (!v ? "Please select your occupation." : null),
 
@@ -352,15 +330,21 @@ window.DS = window.DS || {};
     return rule ? rule(value == null ? "" : String(value), form || {}) : null;
   };
 
-  /** File rules: extension + declared MIME + size (§8.3, §48, §71). */
-  DS.validateFile = function (file, required) {
+  /** File rules: extension + declared MIME + size (§8.3, §48, §71).
+   *  allowedExt/allowedMime let a caller restrict to PDF-only (Supporting
+   *  Documents) while EWS/PWD keep accepting PDF or JPG. */
+  DS.validateFile = function (file, required, allowedExt, allowedMime) {
     if (!file) return required ? "Please upload this document." : null;
 
+    const extList = allowedExt || DS.ALLOWED_EXT;
+    const mimeList = allowedMime || DS.ALLOWED_MIME;
+    const fileTypeLabel = extList.includes("jpg") ? "PDF or JPG" : "PDF";
+
     const ext = DS.extensionOf(file.name);
-    if (!DS.ALLOWED_EXT.includes(ext)) return "Please upload a PDF or JPG file.";
+    if (!extList.includes(ext)) return `Please upload a ${fileTypeLabel} file.`;
 
     const mime = (file.type || "").toLowerCase();
-    if (mime && !DS.ALLOWED_MIME.includes(mime)) return "Please upload a PDF or JPG file.";
+    if (mime && !mimeList.includes(mime)) return `Please upload a ${fileTypeLabel} file.`;
 
     if (file.size <= 0) return "That file appears to be empty.";
     if (file.size > DS.MAX_FILE_BYTES) return "File size must not exceed 10 MB.";

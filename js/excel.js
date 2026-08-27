@@ -36,7 +36,10 @@
     ["Do you belong to EWS category?",     (r) => r.ews_category,               "s"],
     ["Last Completed Education",           (r) => r.last_completed_education,   "s"],
     ["Degree / Specialization",            (r) => r.degree_specialization,      "s"],
-    ["Supporting document (Education)",    (r) => r.education_document_name,    "link", (r) => r.education_document_path],
+    ["10th Marksheet",                     (r) => r.marksheet_10th_document_name || "",        "link", (r) => r.marksheet_10th_document_path],
+    ["12th Marksheet",                     (r) => r.marksheet_12th_document_name || "",        "link", (r) => r.marksheet_12th_document_path],
+    ["Degree Marksheet",                   (r) => r.marksheet_degree_document_name || "",      "link", (r) => r.marksheet_degree_document_path],
+    ["Diploma or ITI Marksheet",           (r) => r.marksheet_diploma_iti_document_name || "", "link", (r) => r.marksheet_diploma_iti_document_path],
     ["Annual income",                      (r) => r.annual_income,              "s"],
     ["Occupation",                         (r) => r.occupation,                 "s"],
     ["If Student, Type of Institution",    (r) => r.institution_type || "",     "s"],
@@ -70,16 +73,21 @@
     return { t: "n", v: toSerial(localMs), z: "dd-mmm-yyyy hh:mm" };
   }
 
-  /** One signed URL per distinct storage path, fetched in parallel. */
-  async function signUrlsFor(paths) {
-    const unique = [...new Set(paths.filter(Boolean))];
+  /** One signed URL per distinct storage path, fetched in parallel. The
+   *  `download` option forces the browser to save using the renamed
+   *  filename (Content-Disposition), never the original uploaded name. */
+  async function signUrlsFor(pathNamePairs) {
+    const uniqueByPath = new Map();
+    pathNamePairs.forEach(([path, name]) => {
+      if (path && !uniqueByPath.has(path)) uniqueByPath.set(path, name);
+    });
     const map = new Map();
 
-    await Promise.all(unique.map(async (path) => {
+    await Promise.all([...uniqueByPath.entries()].map(async ([path, name]) => {
       try {
         const { data, error } = await DS.supabase.storage
           .from(DS.BUCKET)
-          .createSignedUrl(path, LINK_EXPIRY_SECONDS);
+          .createSignedUrl(path, LINK_EXPIRY_SECONDS, { download: name || true });
         if (!error && data) map.set(path, data.signedUrl);
       } catch (err) {
         console.error("excel signed url:", path, err);
@@ -101,11 +109,12 @@
     // data rows, always ordered by serial_no
     const ordered = [...rows].sort((a, b) => a.serial_no - b.serial_no);
 
-    // Gather every document path across every row up front, then sign
-    // them all in parallel instead of one round trip per cell.
+    // Gather every document (path, download name) pair across every row up
+    // front, then sign them all in parallel instead of one round trip per cell.
     const linkColumns = COLUMNS.filter((col) => col[2] === "link");
-    const allPaths = ordered.flatMap((row) => linkColumns.map((col) => col[3](row)));
-    const urlMap = await signUrlsFor(allPaths);
+    const allPathNamePairs = ordered.flatMap((row) =>
+      linkColumns.map((col) => [col[3](row), col[1](row)]));
+    const urlMap = await signUrlsFor(allPathNamePairs);
 
     ordered.forEach((row, i) => {
       COLUMNS.forEach((col, c) => {

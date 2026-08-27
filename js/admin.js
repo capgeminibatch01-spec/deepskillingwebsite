@@ -272,8 +272,13 @@
         <td>${esc(r.parent_name)}</td>
         <td>${esc(r.alternative_contact_number)}</td>
         <td>${esc(r.social_category)}</td>
-        <td>${esc(DS.formatDateTime(r.created_at))}</td>
-        <td>${documentLinks(r)}</td>
+                <td>${esc(DS.formatDateTime(r.created_at))}</td>
+        <td>${documentCell(r.marksheet_10th_document_name, r.marksheet_10th_document_path)}</td>
+        <td>${documentCell(r.marksheet_12th_document_name, r.marksheet_12th_document_path)}</td>
+        <td>${documentCell(r.marksheet_degree_document_name, r.marksheet_degree_document_path)}</td>
+        <td>${documentCell(r.marksheet_diploma_iti_document_name, r.marksheet_diploma_iti_document_path)}</td>
+        <td>${documentCell(r.ews_certificate_name, r.ews_certificate_path)}</td>
+        <td>${documentCell(r.pwd_certificate_name, r.pwd_certificate_path)}</td>
         <td class="text-center">
           <button class="btn btn-ds-danger" type="button" data-delete="${esc(r.id)}"
                   title="Delete ${esc(r.mafoi_id)}" aria-label="Delete ${esc(r.mafoi_id)}">
@@ -283,22 +288,18 @@
       </tr>`).join("");
   }
 
-  /** Document names come straight from the database — never reconstructed. */
-  function documentLinks(r) {
+  /** Document name/path come straight from the database — never
+   *  reconstructed. One document per cell now, instead of a single
+   *  combined Documents column. */
+  function documentCell(name, path) {
     const esc = DS.escapeHtml;
-    const items = [
-      [r.education_document_name, r.education_document_path],
-      [r.ews_certificate_name, r.ews_certificate_path],
-      [r.pwd_certificate_name, r.pwd_certificate_path],
-    ].filter(([name, path]) => name && path);
+    if (!name || !path) return '<span class="ds-help">—</span>';
 
-    if (!items.length) return '<span class="ds-help">—</span>';
-
-    return items.map(([name, path]) => `
+    return `
       <a class="ds-doc-link" role="button" tabindex="0"
          data-doc="${esc(path)}" data-name="${esc(name)}" title="${esc(name)}">
         <i class="bi bi-file-earmark-arrow-down"></i>${esc(name)}
-      </a>`).join("");
+      </a>`;
   }
 
   /* ------------------------------------------------------------------ */

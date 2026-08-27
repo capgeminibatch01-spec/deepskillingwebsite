@@ -15,7 +15,7 @@
 //   validated here and the service-role key never leaves the server.)
 // =====================================================================
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { BUCKET, DOC_KINDS, MAX_FILE_BYTES, type DocKind } from "../_shared/constants.ts";
+import { BUCKET, DOC_KINDS, DOC_STORAGE_LABELS, MAX_FILE_BYTES, OPTIONAL_DOC_KINDS, type DocKind } from "../_shared/constants.ts";
 import { corsHeaders, fail, json, mapDbError } from "../_shared/http.ts";
 import {
   extensionOf,
@@ -132,9 +132,11 @@ async function submit(body: any): Promise<Response> {
   if (errors.length) return json({ ok: false, code: "VALIDATION_ERROR", errors }, 400);
 
   // ---- 2. Which documents must exist? --------------------------------
-    const requiredKinds: DocKind[] = ["ews"];
-  if (data.last_completed_education !== "1-Not completed formal education") requiredKinds.push("education");
+        const requiredKinds: DocKind[] = ["ews"];
   if (data.pwd_status === "Yes - 1") requiredKinds.push("pwd");
+  const optionalKinds: DocKind[] = [...OPTIONAL_DOC_KINDS];
+  // The four Supporting Documents (10th/12th/Degree/Diploma-ITI marksheets)
+  // are optional — validate them below only if the student attached one.
 
   // ---- 3. Inspect what was actually staged ---------------------------
   const { data: staged, error: listErr } = await admin.storage
@@ -170,13 +172,26 @@ async function submit(body: any): Promise<Response> {
     }
   }
 
-    // An education document must not survive a "Not completed formal
-  // education" answer, mirroring the PWD rule below.
-  if (data.last_completed_education === "1-Not completed formal education" && stagedByKind.has("education")) {
-    await admin.storage.from(BUCKET).remove([stagedByKind.get("education")!.path]);
-    stagedByKind.delete("education");
+  for (const kind of optionalKinds) {
+    const s = stagedByKind.get(kind);
+    if (!s) continue;
+    fileErrors.push(...validateFileMeta(kind, `x.${s.ext}`, s.size, s.mime));
+    if (s.size > MAX_FILE_BYTES) {
+      fileErrors.push({ field: `${kind}_file`, message: "File size must not exceed 10 MB." });
+    }
   }
-  // A PWD certificate must not survive a "No - 2" answer (§15).
+
+  // Optional documents are validated only when the student attached one.
+  for (const kind of optionalKinds) {
+    const s = stagedByKind.get(kind);
+    if (!s) continue;
+    fileErrors.push(...validateFileMeta(kind, `x.${s.ext}`, s.size, s.mime));
+    if (s.size > MAX_FILE_BYTES) {
+      fileErrors.push({ field: `${kind}_file`, message: "File size must not exceed 10 MB." });
+    }
+  }
+
+    // A PWD certificate must not survive a "No - 2" answer (§15).
   if (data.pwd_status === "No - 2" && stagedByKind.has("pwd")) {
     await admin.storage.from(BUCKET).remove([stagedByKind.get("pwd")!.path]);
     stagedByKind.delete("pwd");
@@ -188,15 +203,16 @@ async function submit(body: any): Promise<Response> {
   }
 
   // ---- 4. Magic-byte check on every file -----------------------------
-  for (const kind of requiredKinds) {
+  for (const kind of [...requiredKinds, ...optionalKinds.filter((k) => stagedByKind.has(k))]) {
     const s = stagedByKind.get(kind)!;
     const sniffed = await sniffStored(s.path);
     if (!extMatchesContent(s.ext, sniffed)) {
       await purgeStaging(stagingId);
+      const typeLabel = (DOC_STORAGE_LABELS as Record<string, string>)[kind]?.includes("MS") ? "PDF" : "PDF or JPG";
       return json({
         ok: false,
         code: "VALIDATION_ERROR",
-        errors: [{ field: `${kind}_file`, message: "Please upload a genuine PDF or JPG file." }],
+        errors: [{ field: `${kind}_file`, message: `Please upload a genuine ${typeLabel} file.` }],
       }, 400);
     }
   }
@@ -224,7 +240,10 @@ async function submit(body: any): Promise<Response> {
     parent_name: str(data.parent_name),
     alternative_contact_number: str(data.alternative_contact_number),
     social_category: str(data.social_category),
-        education_ext: stagedByKind.get("education")?.ext ?? "",
+        marksheet_10th_ext:        stagedByKind.get("marksheet_10th")?.ext ?? "",
+    marksheet_12th_ext:        stagedByKind.get("marksheet_12th")?.ext ?? "",
+    marksheet_degree_ext:      stagedByKind.get("marksheet_degree")?.ext ?? "",
+    marksheet_diploma_iti_ext: stagedByKind.get("marksheet_diploma_iti")?.ext ?? "",
     ews_ext: stagedByKind.get("ews")!.ext,
     pwd_ext: stagedByKind.get("pwd")?.ext ?? "",
   };
@@ -242,10 +261,11 @@ async function submit(body: any): Promise<Response> {
 
   // ---- 6. Move staged files to their final, renamed home -------------
   const moves: { from: string; to: string }[] = [];
-  for (const kind of requiredKinds) {
+  for (const kind of DOC_KINDS) {
     const doc = created.documents?.[kind];
-    if (!doc) continue;
-    moves.push({ from: stagedByKind.get(kind)!.path, to: doc.path });
+    const staged = stagedByKind.get(kind);
+    if (!doc || !staged) continue;
+    moves.push({ from: staged.path, to: doc.path });
   }
 
   const done: { from: string; to: string }[] = [];

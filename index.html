@@ -93,12 +93,9 @@
                             <select class="form-select" id="unique_id_type" name="unique_id_type"
                       aria-describedby="unique_id_type_error" required>
                 <option value="">Select an option</option>
-                <option>Aadhaar Card</option>
-                <option>PAN Card</option>
-                <option>Electoral Card</option>
-                <option>Driving License</option>
-                <option>College ID</option>
-                <option>School 10th / 12th Marksheet</option>
+                <option>10th Marksheet</option>
+<option>12th Marksheet</option>
+<option>Degree Marksheet</option>
               </select>
               <div class="ds-error" id="unique_id_type_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
@@ -108,9 +105,9 @@
           <div class="col-md-6">
             <div class="ds-field" data-field="id_proof">
               <label class="ds-label" for="id_proof">Id proof<span class="ds-req">*</span></label>
-              <span class="ds-help" id="id_proof_help">As printed on the document selected above.</span>
-              <input type="text" inputmode="numeric" class="form-control" id="id_proof" name="id_proof"
-                     placeholder="e.g. GPWPD901R" autocomplete="off"
+                            <span class="ds-help" id="id_proof_help">As printed on the document selected above.</span>
+              <input type="text" class="form-control" id="id_proof" name="id_proof"
+                     placeholder="e.g. Roll / Register Number" autocomplete="off"
                      aria-describedby="id_proof_help id_proof_error" required>
               <div class="ds-error" id="id_proof_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
@@ -196,7 +193,7 @@
             <div class="ds-field" data-field="contact_number">
               <label class="ds-label" for="contact_number">Contact number<span class="ds-req">*</span></label>
               <input type="tel" inputmode="numeric" class="form-control" id="contact_number" name="contact_number"
-                     placeholder="9172538292" autocomplete="tel-national"
+                     placeholder="Enter your contact number" autocomplete="tel-national"
                      aria-describedby="contact_number_help contact_number_error" required>
               <div class="ds-error" id="contact_number_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
@@ -265,7 +262,7 @@
 
                     <!-- 2. Degree / Specialization (hidden when "Not completed formal education") -->
           <div class="col-md-6">
-            <div class="ds-conditional show" id="degreeWrap">
+            <div id="degreeWrap">
               <div class="ds-field" data-field="degree_specialization">
                 <label class="ds-label" for="degree_specialization">Degree / Specialization<span class="ds-req">*</span></label>
                 <select class="form-select" id="degree_specialization" name="degree_specialization"
@@ -287,19 +284,57 @@
               </div>
             </div>
           </div>
-          <!-- 3. Supporting document (Education) (hidden when "Not completed formal education") -->
+          <!-- 3. Supporting Documents -->
           <div class="col-12">
-            <div class="ds-conditional show" id="educationFileWrap">
-              <div class="ds-field" data-field="education_file">
-                <label class="ds-label" for="education_file">Supporting document (Education)<span class="ds-req">*</span></label>
-                <span class="ds-help" id="education_file_help">Upload 10th, 12th or Degree Marksheet.PDF or JPG, maximum 10 MB.</span>
+            <div id="supportingDocumentsWrap">
+              <label class="ds-label mb-2">Supporting Documents</label>
+
+              <div class="ds-field mb-3" data-field="marksheet_10th_file">
+                <label class="ds-label" for="marksheet_10th_file">10th Marksheet</label>
+                <span class="ds-help" id="marksheet_10th_file_help">PDF only, maximum 10 MB.</span>
                 <div class="ds-file-drop">
-                  <input type="file" id="education_file" name="education_file"
-                         accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg"
-                         aria-describedby="education_file_help education_file_error" required>
-                  <div class="ds-file-meta" id="education_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
+                  <input type="file" id="marksheet_10th_file" name="marksheet_10th_file"
+                         accept=".pdf,application/pdf"
+                         aria-describedby="marksheet_10th_file_help marksheet_10th_file_error">
+                  <div class="ds-file-meta" id="marksheet_10th_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
                 </div>
-                <div class="ds-error" id="education_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+                <div class="ds-error" id="marksheet_10th_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+              </div>
+
+              <div class="ds-field mb-3" data-field="marksheet_12th_file">
+                <label class="ds-label" for="marksheet_12th_file">12th Marksheet</label>
+                <span class="ds-help" id="marksheet_12th_file_help">PDF only, maximum 10 MB.</span>
+                <div class="ds-file-drop">
+                  <input type="file" id="marksheet_12th_file" name="marksheet_12th_file"
+                         accept=".pdf,application/pdf"
+                         aria-describedby="marksheet_12th_file_help marksheet_12th_file_error">
+                  <div class="ds-file-meta" id="marksheet_12th_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
+                </div>
+                <div class="ds-error" id="marksheet_12th_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+              </div>
+
+              <div class="ds-field mb-3" data-field="marksheet_degree_file">
+                <label class="ds-label" for="marksheet_degree_file">Degree Marksheet</label>
+                <span class="ds-help" id="marksheet_degree_file_help">PDF only, maximum 10 MB.</span>
+                <div class="ds-file-drop">
+                  <input type="file" id="marksheet_degree_file" name="marksheet_degree_file"
+                         accept=".pdf,application/pdf"
+                         aria-describedby="marksheet_degree_file_help marksheet_degree_file_error">
+                  <div class="ds-file-meta" id="marksheet_degree_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
+                </div>
+                <div class="ds-error" id="marksheet_degree_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+              </div>
+
+              <div class="ds-field" data-field="marksheet_diploma_iti_file">
+                <label class="ds-label" for="marksheet_diploma_iti_file">Diploma or ITI Marksheet</label>
+                <span class="ds-help" id="marksheet_diploma_iti_file_help">PDF only, maximum 10 MB.</span>
+                <div class="ds-file-drop">
+                  <input type="file" id="marksheet_diploma_iti_file" name="marksheet_diploma_iti_file"
+                         accept=".pdf,application/pdf"
+                         aria-describedby="marksheet_diploma_iti_file_help marksheet_diploma_iti_file_error">
+                  <div class="ds-file-meta" id="marksheet_diploma_iti_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
+                </div>
+                <div class="ds-error" id="marksheet_diploma_iti_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
               </div>
             </div>
           </div>
@@ -362,7 +397,7 @@
           <div class="col-12">
             <div class="ds-field" data-field="ews_file">
               <label class="ds-label" for="ews_file">EWS Certification<span class="ds-req">*</span></label>
-              <span class="ds-help" id="ews_file_help">Upload Income Certificate or Ration Card. PDF or JPG, maximum 10 MB.</span>
+              <span class="ds-help" id="ews_file_help">Upload Income Certificate or Ration Card. Only PDF's</span>
               <div class="ds-file-drop">
                 <input type="file" id="ews_file" name="ews_file"
                        accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg"
@@ -382,6 +417,7 @@
                 <option>Data Analytics</option>
                 <option>Artificial Intelligence</option>
                 <option>Cyber Security</option>
+                <option>BFSI</option>
               </select>
               <div class="ds-error" id="domain_course_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
@@ -420,9 +456,10 @@
           <!-- 11. Name of parent -->
           <div class="col-md-6">
             <div class="ds-field" data-field="parent_name">
-              <label class="ds-label" for="parent_name">Name of parent<span class="ds-req">*</span></label>
-              <span class="ds-help" id="parent_name_help">Full name of the parent</span>
+              <label class="ds-label" for="parent_name">Name of the Parent<span class="ds-req">*</span></label>
+              <span class="ds-help" id="parent_name_help">Enter both father's and mother's names.</span>
               <input type="text" class="form-control" id="parent_name" name="parent_name"
+                     placeholder="Enter both father's and mother's names" autocomplete="off"
                      aria-describedby="parent_name_help parent_name_error" required>
               <div class="ds-error" id="parent_name_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
@@ -434,7 +471,7 @@
               <label class="ds-label" for="alternative_contact_number">Alternative Contact Number<span class="ds-req">*</span></label>
               <span class="ds-help" id="alternative_contact_number_help">exactly 10-digit mobile number</span>
               <input type="tel" inputmode="numeric" class="form-control" id="alternative_contact_number"
-                     name="alternative_contact_number" placeholder="e.g. 9182739393" autocomplete="off"
+                     name="alternative_contact_number" placeholder="Enter your alternative contact number" autocomplete="off"
                      aria-describedby="alternative_contact_number_help alternative_contact_number_error" required>
               <div class="ds-error" id="alternative_contact_number_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
@@ -450,7 +487,7 @@
                 <option>ST-2</option>
                 <option>OBC-3</option>
                 <option>Gen-4</option>
-                <option>Prefer not to say-5</option>
+                <option>Others - 5</option>
               </select>
               <div class="ds-error" id="social_category_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>

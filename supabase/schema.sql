@@ -85,8 +85,14 @@ create table if not exists public.registrations (
   -- Enrolment --------------------------------------------------------
   last_completed_education    text not null,
   degree_specialization       text not null,
-  education_document_path     text not null,
-  education_document_name     text not null,
+  marksheet_10th_document_path        text null,
+  marksheet_10th_document_name        text null,
+  marksheet_12th_document_path        text null,
+  marksheet_12th_document_name        text null,
+  marksheet_degree_document_path      text null,
+  marksheet_degree_document_name      text null,
+  marksheet_diploma_iti_document_path text null,
+  marksheet_diploma_iti_document_name text null,
   annual_income               text not null,
   occupation                  text not null,
   institution_type            text null,
@@ -105,7 +111,8 @@ create table if not exists public.registrations (
 
   -- ---- Value domains (server-side truth for every dropdown) --------
   constraint reg_unique_id_type_chk check (unique_id_type in (
-    'PAN Card','Electoral Card','Driving License','College ID','School 10th / 12th Marksheet')),
+    'Aadhaar Card','PAN Card','Electoral Card','Driving License','College ID',
+    'School 10th / 12th Marksheet','10th Marksheet','12th Marksheet','Degree Marksheet')),
   constraint reg_gender_chk check (gender in (
     'Male','Female','Third Gender','Prefer Not to Say')),
   constraint reg_state_chk check (beneficiary_state in ('TamilNadu','Andhra Pradesh')),
@@ -122,10 +129,10 @@ create table if not exists public.registrations (
   constraint reg_institution_chk check (institution_type is null or institution_type in (
     '1-School','2-University','3-ITI','4-NGO Centre','5-None')),
   constraint reg_domain_chk check (domain_course in (
-    'Data Analytics','Artificial Intelligence','Cyber Security')),
+    'Data Analytics','Artificial Intelligence','Cyber Security','BFSI')),
   constraint reg_pwd_chk check (pwd_status in ('Yes - 1','No - 2')),
   constraint reg_social_chk check (social_category in (
-    'SC-1','ST-2','OBC-3','Gen-4','Prefer not to say-5')),
+    'SC-1','ST-2','OBC-3','Gen-4','Prefer not to say-5','Others - 5')),
 
   -- ---- Format rules -------------------------------------------------
     constraint reg_id_proof_chk    check (id_proof ~ '^[A-Za-z0-9]+$'),
@@ -322,10 +329,17 @@ declare
   v_occupation text := p->>'occupation';
   v_inst       text := nullif(btrim(coalesce(p->>'institution_type','')), '');
   v_pwd        text := p->>'pwd_status';
-  v_edu_ext    text := public.file_extension(coalesce(p->>'education_ext','pdf'));
+  v_10th_ext      text;
+  v_12th_ext      text;
+  v_degree_ext    text;
+  v_diploma_ext   text;
   v_ews_ext    text := public.file_extension(coalesce(p->>'ews_ext','pdf'));
   v_pwd_ext    text := public.file_extension(coalesce(p->>'pwd_ext','pdf'));
-  v_edu_name   text;
+  v_10th_name    text;
+  v_12th_name    text;
+  v_degree_name  text;
+  v_diploma_name    text;
+  v_diploma_storage text;
   v_ews_name   text;
   v_pwd_name   text;
 begin
@@ -376,10 +390,33 @@ begin
   select coalesce(max(serial_no), 0) + 1 into v_serial from public.registrations;
   v_mafoi := public.ds_id(v_serial);
 
-  v_edu_name := public.document_filename(v_mafoi, 'Educational Document', v_first, v_last, v_edu_ext);
-  v_ews_name := public.document_filename(v_mafoi, 'EWS Certificate',      v_first, v_last, v_ews_ext);
+  -- Each of the four marksheets is optional: only build a name/ext when one
+  -- was actually staged. Empty string ("") from the Edge Function means
+  -- "nothing uploaded" and must stay null throughout.
+  v_10th_ext    := case when coalesce(p->>'marksheet_10th_ext','') = ''        then null else public.file_extension(p->>'marksheet_10th_ext') end;
+  v_12th_ext    := case when coalesce(p->>'marksheet_12th_ext','') = ''        then null else public.file_extension(p->>'marksheet_12th_ext') end;
+  v_degree_ext  := case when coalesce(p->>'marksheet_degree_ext','') = ''      then null else public.file_extension(p->>'marksheet_degree_ext') end;
+  v_diploma_ext := case when coalesce(p->>'marksheet_diploma_iti_ext','') = '' then null else public.file_extension(p->>'marksheet_diploma_iti_ext') end;
+
+  if v_10th_ext is not null then
+    v_10th_name := public.document_filename(v_mafoi, '10th MS', v_first, v_last, v_10th_ext);
+  end if;
+  if v_12th_ext is not null then
+    v_12th_name := public.document_filename(v_mafoi, '12th MS', v_first, v_last, v_12th_ext);
+  end if;
+  if v_degree_ext is not null then
+    v_degree_name := public.document_filename(v_mafoi, 'Degree MS', v_first, v_last, v_degree_ext);
+  end if;
+  if v_diploma_ext is not null then
+    -- Display name keeps the "/" the naming convention requires; the
+    -- storage object key cannot contain "/", so it uses a safe stand-in.
+    v_diploma_name    := public.document_filename(v_mafoi, 'Diploma/ITI MS', v_first, v_last, v_diploma_ext);
+    v_diploma_storage := public.document_filename(v_mafoi, 'Diploma-ITI MS', v_first, v_last, v_diploma_ext);
+  end if;
+
+  v_ews_name := public.document_filename(v_mafoi, 'EWS Certificate', v_first, v_last, v_ews_ext);
   if v_pwd = 'Yes - 1' then
-    v_pwd_name := public.document_filename(v_mafoi, 'PWD Certificate',    v_first, v_last, v_pwd_ext);
+    v_pwd_name := public.document_filename(v_mafoi, 'PWD Certificate', v_first, v_last, v_pwd_ext);
   end if;
 
   insert into public.registrations (
@@ -387,7 +424,10 @@ begin
     unique_id_type, id_proof, first_name, last_name, date_of_birth, gender,
     beneficiary_state, district, contact_number, email, ews_category,
     last_completed_education, degree_specialization,
-    education_document_path, education_document_name,
+    marksheet_10th_document_path, marksheet_10th_document_name,
+    marksheet_12th_document_path, marksheet_12th_document_name,
+    marksheet_degree_document_path, marksheet_degree_document_name,
+    marksheet_diploma_iti_document_path, marksheet_diploma_iti_document_name,
     annual_income, occupation, institution_type,
     ews_certificate_path, ews_certificate_name,
     domain_course, pwd_status, pwd_certificate_path, pwd_certificate_name,
@@ -397,7 +437,10 @@ begin
     p->>'unique_id_type', p->>'id_proof', v_first, v_last, v_dob, p->>'gender',
     p->>'beneficiary_state', p->>'district', p->>'contact_number', p->>'email', p->>'ews_category',
     p->>'last_completed_education', p->>'degree_specialization',
-    public.document_path(v_id, v_edu_name), v_edu_name,
+    case when v_10th_name is null then null else public.document_path(v_id, v_10th_name) end, v_10th_name,
+    case when v_12th_name is null then null else public.document_path(v_id, v_12th_name) end, v_12th_name,
+    case when v_degree_name is null then null else public.document_path(v_id, v_degree_name) end, v_degree_name,
+    case when v_diploma_name is null then null else public.document_path(v_id, v_diploma_storage) end, v_diploma_name,
     p->>'annual_income', v_occupation, v_inst,
     public.document_path(v_id, v_ews_name), v_ews_name,
     p->>'domain_course', v_pwd,
@@ -410,10 +453,17 @@ begin
     'serial_no', v_serial,
     'mafoi_id', v_mafoi,
     'documents', jsonb_build_object(
-      'education', jsonb_build_object('name', v_edu_name, 'path', public.document_path(v_id, v_edu_name)),
-      'ews',       jsonb_build_object('name', v_ews_name, 'path', public.document_path(v_id, v_ews_name)),
-      'pwd',       case when v_pwd_name is null then null
-                        else jsonb_build_object('name', v_pwd_name, 'path', public.document_path(v_id, v_pwd_name)) end
+      'marksheet_10th', case when v_10th_name is null then null
+        else jsonb_build_object('name', v_10th_name, 'path', public.document_path(v_id, v_10th_name)) end,
+      'marksheet_12th', case when v_12th_name is null then null
+        else jsonb_build_object('name', v_12th_name, 'path', public.document_path(v_id, v_12th_name)) end,
+      'marksheet_degree', case when v_degree_name is null then null
+        else jsonb_build_object('name', v_degree_name, 'path', public.document_path(v_id, v_degree_name)) end,
+      'marksheet_diploma_iti', case when v_diploma_name is null then null
+        else jsonb_build_object('name', v_diploma_name, 'path', public.document_path(v_id, v_diploma_storage)) end,
+      'ews', jsonb_build_object('name', v_ews_name, 'path', public.document_path(v_id, v_ews_name)),
+      'pwd', case when v_pwd_name is null then null
+        else jsonb_build_object('name', v_pwd_name, 'path', public.document_path(v_id, v_pwd_name)) end
     )
   );
 exception
@@ -446,6 +496,7 @@ declare
   v_rows     jsonb := '[]'::jsonb;
   v_files    jsonb := '[]'::jsonb;
   v_new_name text;
+  v_new_storage_name text;
   v_new_mafoi text;
 begin
   select * into v_target from public.registrations where id = p_id;
@@ -453,7 +504,10 @@ begin
     raise exception 'REGISTRATION_NOT_FOUND' using errcode = 'P0001';
   end if;
 
-  v_files := v_files || to_jsonb(v_target.education_document_path);
+  v_files := v_files || to_jsonb(v_target.marksheet_10th_document_path);
+  v_files := v_files || to_jsonb(v_target.marksheet_12th_document_path);
+  v_files := v_files || to_jsonb(v_target.marksheet_degree_document_path);
+  v_files := v_files || to_jsonb(v_target.marksheet_diploma_iti_document_path);
   v_files := v_files || to_jsonb(v_target.ews_certificate_path);
   if v_target.pwd_certificate_path is not null then
     v_files := v_files || to_jsonb(v_target.pwd_certificate_path);
@@ -469,13 +523,41 @@ begin
 
     v_new_mafoi := public.ds_id(v_row.new_serial);
 
-    -- education
-    v_new_name := public.document_filename(v_new_mafoi, 'Educational Document',
-                    v_row.first_name, v_row.last_name,
-                    public.file_extension(v_row.education_document_name));
-    v_renames := v_renames || jsonb_build_object(
-      'from', v_row.education_document_path,
-      'to',   public.document_path(v_row.id, v_new_name));
+    if v_row.marksheet_10th_document_path is not null then
+      v_new_name := public.document_filename(v_new_mafoi, '10th MS',
+                      v_row.first_name, v_row.last_name,
+                      public.file_extension(v_row.marksheet_10th_document_name));
+      v_renames := v_renames || jsonb_build_object(
+        'from', v_row.marksheet_10th_document_path,
+        'to',   public.document_path(v_row.id, v_new_name));
+    end if;
+
+    if v_row.marksheet_12th_document_path is not null then
+      v_new_name := public.document_filename(v_new_mafoi, '12th MS',
+                      v_row.first_name, v_row.last_name,
+                      public.file_extension(v_row.marksheet_12th_document_name));
+      v_renames := v_renames || jsonb_build_object(
+        'from', v_row.marksheet_12th_document_path,
+        'to',   public.document_path(v_row.id, v_new_name));
+    end if;
+
+    if v_row.marksheet_degree_document_path is not null then
+      v_new_name := public.document_filename(v_new_mafoi, 'Degree MS',
+                      v_row.first_name, v_row.last_name,
+                      public.file_extension(v_row.marksheet_degree_document_name));
+      v_renames := v_renames || jsonb_build_object(
+        'from', v_row.marksheet_degree_document_path,
+        'to',   public.document_path(v_row.id, v_new_name));
+    end if;
+
+    if v_row.marksheet_diploma_iti_document_path is not null then
+      v_new_storage_name := public.document_filename(v_new_mafoi, 'Diploma-ITI MS',
+                      v_row.first_name, v_row.last_name,
+                      public.file_extension(v_row.marksheet_diploma_iti_document_name));
+      v_renames := v_renames || jsonb_build_object(
+        'from', v_row.marksheet_diploma_iti_document_path,
+        'to',   public.document_path(v_row.id, v_new_storage_name));
+    end if;
 
     -- ews
     v_new_name := public.document_filename(v_new_mafoi, 'EWS Certificate',
@@ -556,12 +638,34 @@ begin
     update public.registrations r
        set serial_no = (v_row->>'new_serial')::int,
            mafoi_id  = v_row->>'new_mafoi_id',
-           education_document_name = public.document_filename(
-             v_row->>'new_mafoi_id', 'Educational Document',
-             r.first_name, r.last_name, public.file_extension(r.education_document_name)),
-           education_document_path = public.document_path(r.id, public.document_filename(
-             v_row->>'new_mafoi_id', 'Educational Document',
-             r.first_name, r.last_name, public.file_extension(r.education_document_name))),
+           marksheet_10th_document_name = case when r.marksheet_10th_document_name is null then null
+             else public.document_filename(v_row->>'new_mafoi_id', '10th MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_10th_document_name)) end,
+           marksheet_10th_document_path = case when r.marksheet_10th_document_path is null then null
+             else public.document_path(r.id, public.document_filename(
+               v_row->>'new_mafoi_id', '10th MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_10th_document_name))) end,
+           marksheet_12th_document_name = case when r.marksheet_12th_document_name is null then null
+             else public.document_filename(v_row->>'new_mafoi_id', '12th MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_12th_document_name)) end,
+           marksheet_12th_document_path = case when r.marksheet_12th_document_path is null then null
+             else public.document_path(r.id, public.document_filename(
+               v_row->>'new_mafoi_id', '12th MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_12th_document_name))) end,
+           marksheet_degree_document_name = case when r.marksheet_degree_document_name is null then null
+             else public.document_filename(v_row->>'new_mafoi_id', 'Degree MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_degree_document_name)) end,
+           marksheet_degree_document_path = case when r.marksheet_degree_document_path is null then null
+             else public.document_path(r.id, public.document_filename(
+               v_row->>'new_mafoi_id', 'Degree MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_degree_document_name))) end,
+           marksheet_diploma_iti_document_name = case when r.marksheet_diploma_iti_document_name is null then null
+             else public.document_filename(v_row->>'new_mafoi_id', 'Diploma/ITI MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_diploma_iti_document_name)) end,
+           marksheet_diploma_iti_document_path = case when r.marksheet_diploma_iti_document_path is null then null
+             else public.document_path(r.id, public.document_filename(
+               v_row->>'new_mafoi_id', 'Diploma-ITI MS',
+               r.first_name, r.last_name, public.file_extension(r.marksheet_diploma_iti_document_name))) end,
            ews_certificate_name = public.document_filename(
              v_row->>'new_mafoi_id', 'EWS Certificate',
              r.first_name, r.last_name, public.file_extension(r.ews_certificate_name)),
