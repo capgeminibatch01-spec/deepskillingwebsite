@@ -71,26 +71,112 @@
   /* ------------------------------------------------------------------ */
   /* State → District (§7.8)                                             */
   /* ------------------------------------------------------------------ */
-    function wireStateDistrict() {
+    /**
+   * Lightweight, dependency-free searchable dropdown ("combobox").
+   * Replaces <datalist>, which has unreliable/absent suggestion UI on
+   * mobile Safari and many Android browsers.
+   */
+  function createCombobox(wrapId, inputId, listId, getOptions) {
+    const wrap = $(wrapId);
+    const input = $(inputId);
+    const list = $(listId);
+    let items = [];
+    let activeIndex = -1;
+
+    function render(filterText) {
+      const term = (filterText || "").trim().toLowerCase();
+      const options = getOptions();
+      items = term
+        ? options.filter((name) => name.toLowerCase().includes(term))
+        : options;
+      activeIndex = -1;
+      if (!items.length) {
+        list.innerHTML = options.length
+          ? '<li class="ds-combobox-empty">No matches — check spelling</li>'
+          : '<li class="ds-combobox-empty">Select a state first</li>';
+      } else {
+        list.innerHTML = items.map((name, i) =>
+          `<li class="ds-combobox-option" role="option" data-index="${i}">${DS.escapeHtml(name)}</li>`
+        ).join("");
+      }
+    }
+    function open(filterText) {
+      render(filterText);
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    }
+    function close() {
+      list.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      activeIndex = -1;
+    }
+    function setActive(index) {
+      const options = list.querySelectorAll(".ds-combobox-option");
+      options.forEach((el) => el.classList.remove("active"));
+      if (index >= 0 && options[index]) {
+        options[index].classList.add("active");
+        options[index].scrollIntoView({ block: "nearest" });
+      }
+      activeIndex = index;
+    }
+    function choose(name) {
+      input.value = name;
+      close();
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    input.addEventListener("focus", function () {
+      if (!input.disabled) open(input.value);
+    });
+    input.addEventListener("input", function () {
+      if (!input.disabled) open(input.value);
+    });
+    input.addEventListener("keydown", function (event) {
+      if (list.hidden && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+        open(input.value);
+        return;
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActive(Math.min(activeIndex + 1, items.length - 1));
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActive(Math.max(activeIndex - 1, 0));
+      } else if (event.key === "Enter") {
+        if (!list.hidden && activeIndex >= 0 && items[activeIndex]) {
+          event.preventDefault();
+          choose(items[activeIndex]);
+        }
+      } else if (event.key === "Escape") {
+        close();
+      }
+    });
+    list.addEventListener("mousedown", function (event) {
+      // mousedown (not click) fires before the input's blur, so the
+      // selection registers before the list closes.
+      const option = event.target.closest(".ds-combobox-option");
+      if (option) choose(items[Number(option.dataset.index)]);
+    });
+    document.addEventListener("click", function (event) {
+      if (!wrap.contains(event.target)) close();
+    });
+    return { refresh: () => { if (!list.hidden) render(input.value); } };
+  }
+
+  function wireStateDistrict() {
     const state = $("beneficiary_state");
     const district = $("district");
-    const stateList = $("beneficiary_state_list");
-    const districtList = $("district_list");
-    // Populate the state/UT typeahead once, on load.
-    stateList.innerHTML = DS.STATES.map((name) => `<option value="${name}"></option>`).join("");
-    function syncDistrictOptions() {
-      const options = DS.DISTRICTS[state.value] || [];
-      districtList.innerHTML = options.map((name) => `<option value="${name}"></option>`).join("");
-      district.disabled = options.length === 0;
-      district.placeholder = options.length ? "Start typing a district" : "Select a state first";
-    }
-    // "input" fires on every keystroke, so a district list refreshes as
-    // soon as a full, valid state name is typed — not only on blur/change.
-    state.addEventListener("input", function () {
+    const stateBox = createCombobox("stateCombobox", "beneficiary_state", "beneficiary_state_list",
+      () => DS.STATES);
+    const districtBox = createCombobox("districtCombobox", "district", "district_list",
+      () => DS.DISTRICTS[state.value] || []);
+    state.addEventListener("change", function () {
       // Always clear the previous district when the state changes.
       district.value = "";
       DS.clearFieldError("district");
-      syncDistrictOptions();
+      const options = DS.DISTRICTS[state.value] || [];
+      district.disabled = options.length === 0;
+      district.placeholder = options.length ? "Start typing a district" : "Select a state first";
+      districtBox.refresh();
       updateProgress();
     });
   }

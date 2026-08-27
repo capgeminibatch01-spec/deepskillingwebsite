@@ -168,10 +168,12 @@
           <div class="col-md-6">
             <div class="ds-field" data-field="beneficiary_state">
               <label class="ds-label" for="beneficiary_state">Beneficiary State (Current)<span class="ds-req">*</span></label>
-              <input type="text" class="form-control" id="beneficiary_state" name="beneficiary_state"
-                     list="beneficiary_state_list" autocomplete="off" placeholder="Start typing a state or UT"
-                     aria-describedby="beneficiary_state_error" required>
-              <datalist id="beneficiary_state_list"></datalist>
+              <div class="ds-combobox" id="stateCombobox">
+                <input type="text" class="form-control" id="beneficiary_state" name="beneficiary_state"
+                       autocomplete="off" placeholder="Start typing a state or UT"
+                       aria-describedby="beneficiary_state_error" aria-expanded="false" role="combobox" required>
+                <ul class="ds-combobox-list" id="beneficiary_state_list" role="listbox" hidden></ul>
+              </div>
               <div class="ds-error" id="beneficiary_state_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
           </div>
@@ -179,10 +181,12 @@
           <div class="col-md-6">
             <div class="ds-field" data-field="district">
               <label class="ds-label" for="district">District (Current)<span class="ds-req">*</span></label>
-              <input type="text" class="form-control" id="district" name="district"
-                     list="district_list" autocomplete="off" placeholder="Select a state first"
-                     aria-describedby="district_error" disabled required>
-              <datalist id="district_list"></datalist>
+              <div class="ds-combobox" id="districtCombobox">
+                <input type="text" class="form-control" id="district" name="district"
+                       autocomplete="off" placeholder="Select a state first"
+                       aria-describedby="district_error" aria-expanded="false" role="combobox" disabled required>
+                <ul class="ds-combobox-list" id="district_list" role="listbox" hidden></ul>
+              </div>
               <div class="ds-error" id="district_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
           </div>

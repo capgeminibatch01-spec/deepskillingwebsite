@@ -1129,3 +1129,24 @@ select:focus-visible,
 .ds-admin-bar-track { flex: 1 1 auto; height: 8px; border-radius: 999px; background: var(--ds-100); overflow: hidden; }
 .ds-admin-bar-fill { height: 100%; border-radius: 999px; background: var(--ds-admin-accent); }
 .ds-admin-bar-value { flex: 0 0 auto; font-size: .78rem; font-weight: 650; color: var(--ds-900); width: 22px; text-align: right; }
+
+/* ===================================================================== */
+/* Searchable dropdown (combobox) — replaces <datalist> for state/district */
+/* ===================================================================== */
+.ds-combobox { position: relative; }
+.ds-combobox-list {
+  position: absolute; top: calc(100% + .35rem); left: 0; right: 0; z-index: 40;
+  background: var(--ds-white); border: 1px solid var(--ds-200); border-radius: var(--ds-radius);
+  box-shadow: var(--ds-shadow); max-height: 230px; overflow-y: auto;
+  margin: 0; padding: .3rem; list-style: none;
+}
+.ds-combobox-option {
+  padding: .55rem .7rem; font-size: .9rem; color: var(--ds-text);
+  border-radius: 8px; cursor: pointer;
+}
+.ds-combobox-option:hover, .ds-combobox-option.active { background: var(--ds-100); color: var(--ds-800); }
+.ds-combobox-empty { padding: .55rem .7rem; font-size: .85rem; color: var(--ds-muted); }
+@media (max-width: 767.98px) {
+  .ds-combobox-list { max-height: 45vh; }
+  .ds-combobox-option { padding: .7rem .8rem; font-size: 1rem; } /* larger touch targets on mobile */
+}
