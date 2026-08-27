@@ -319,7 +319,7 @@ window.DS = window.DS || {};
       if (!val) return "Please enter the name of the parent.";
       const parts = val.split(",").map((p) => p.trim()).filter(Boolean);
       if (parts.length < 2 || parts.some((p) => p.length < 2)) {
-        return "Please enter both father's and mother's names, separated by a comma (e.g. Dhanaraj T, Parimalam D).";
+        return "Please enter both father's and mother's names, separated by a comma.";
       }
       return null;
     },

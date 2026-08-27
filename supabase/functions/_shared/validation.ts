@@ -190,7 +190,7 @@ export function validateRegistration(d: any): FieldError[] {
     if (parentParts.length < 2 || parentParts.some((p: string) => p.length < 2)) {
       e.push({
         field: "parent_name",
-        message: "Please enter both father's and mother's names, separated by a comma (e.g. Dhanaraj T, Parimalam D).",
+        message: "Please enter both father's and mother's names, separated by a comma.",
       });
     }
   }
