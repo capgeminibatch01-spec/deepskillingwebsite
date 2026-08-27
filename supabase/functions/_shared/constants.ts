@@ -252,7 +252,7 @@ export const DOC_KINDS = [
 export type DocKind = typeof DOC_KINDS[number];
 
 export const OPTIONAL_DOC_KINDS: DocKind[] = [
-  "marksheet_10th", "marksheet_12th", "marksheet_degree", "marksheet_diploma_iti",
+  "marksheet_degree", "marksheet_diploma_iti",
 ];
 
 export const DOC_LABELS: Record<DocKind, string> = {

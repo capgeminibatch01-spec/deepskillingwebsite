@@ -182,7 +182,18 @@ export function validateRegistration(d: any): FieldError[] {
   req("pwd_status", "Please answer the disability question.");
   oneOf("pwd_status", OPTIONS.pwd_status, "Please select a valid option.");
 
-  req("parent_name", "Please enter the name of the parent.");
+      const parentName = str("parent_name");
+  if (!parentName) {
+    e.push({ field: "parent_name", message: "Please enter the name of the parent." });
+  } else {
+    const parentParts = parentName.split(",").map((p: string) => p.trim()).filter(Boolean);
+    if (parentParts.length < 2 || parentParts.some((p: string) => p.length < 2)) {
+      e.push({
+        field: "parent_name",
+        message: "Please enter both father's and mother's names, separated by a comma (e.g. Dhanaraj T, Parimalam D).",
+      });
+    }
+  }
 
   const alt = str("alternative_contact_number");
   if (!alt) e.push({ field: "alternative_contact_number", message: "Please enter an alternative contact number." });

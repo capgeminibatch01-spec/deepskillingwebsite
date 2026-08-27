@@ -14,9 +14,9 @@
 
     const FILE_FIELDS = {
     marksheet_10th:        { input: "marksheet_10th_file",        field: "marksheet_10th_file",
-                              required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
+                              required: () => true, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
     marksheet_12th:        { input: "marksheet_12th_file",        field: "marksheet_12th_file",
-                              required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
+                              required: () => true, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
     marksheet_degree:      { input: "marksheet_degree_file",      field: "marksheet_degree_file",
                               required: () => false, allowedExt: DS.PDF_ONLY_EXT, allowedMime: DS.PDF_ONLY_MIME },
     marksheet_diploma_iti: { input: "marksheet_diploma_iti_file", field: "marksheet_diploma_iti_file",
@@ -299,6 +299,7 @@
         const file = input.files && input.files[0];
         if (!file) {
           meta.classList.remove("show");
+          syncDegreeDiplomaAlternative();
           updateProgress();
           return;
         }
@@ -314,9 +315,32 @@
         } else {
           DS.clearFieldError(cfg.field);
         }
+        syncDegreeDiplomaAlternative();
         updateProgress();
       });
     });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Degree Marksheet / Diploma or ITI Marksheet are alternatives — at   */
+  /* least one is required, neither is individually mandatory, and      */
+  /* uploading one clears any error showing on the other.               */
+  /* ------------------------------------------------------------------ */
+  const DEGREE_DIPLOMA_MSG =
+    "Please upload at least one: Degree Marksheet or Diploma or ITI Marksheet.";
+
+  function syncDegreeDiplomaAlternative() {
+    const degree = $("marksheet_degree_file");
+    const diploma = $("marksheet_diploma_iti_file");
+    if (!degree || !diploma) return;
+
+    const hasDegree = !!(degree.files && degree.files[0]);
+    const hasDiploma = !!(diploma.files && diploma.files[0]);
+
+    if (hasDegree || hasDiploma) {
+      DS.clearFieldError("marksheet_degree_file");
+      DS.clearFieldError("marksheet_diploma_iti_file");
+    }
   }
 
   /* ------------------------------------------------------------------ */
@@ -442,6 +466,14 @@
       const error = DS.validateFile(file, cfg.required(), cfg.allowedExt, cfg.allowedMime);
       if (error) { DS.setFieldError(cfg.field, error); count++; }
     });
+
+    const degreeFile = $("marksheet_degree_file").files && $("marksheet_degree_file").files[0];
+    const diplomaFile = $("marksheet_diploma_iti_file").files && $("marksheet_diploma_iti_file").files[0];
+    if (!degreeFile && !diplomaFile) {
+      DS.setFieldError("marksheet_degree_file", DEGREE_DIPLOMA_MSG);
+      DS.setFieldError("marksheet_diploma_iti_file", DEGREE_DIPLOMA_MSG);
+      count++;
+    }
 
     return { data, errorCount: count };
   }

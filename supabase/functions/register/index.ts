@@ -132,7 +132,7 @@ async function submit(body: any): Promise<Response> {
   if (errors.length) return json({ ok: false, code: "VALIDATION_ERROR", errors }, 400);
 
   // ---- 2. Which documents must exist? --------------------------------
-        const requiredKinds: DocKind[] = ["ews"];
+          const requiredKinds: DocKind[] = ["ews", "marksheet_10th", "marksheet_12th"];
   if (data.pwd_status === "Yes - 1") requiredKinds.push("pwd");
   const optionalKinds: DocKind[] = [...OPTIONAL_DOC_KINDS];
   // The four Supporting Documents (10th/12th/Degree/Diploma-ITI marksheets)
@@ -189,6 +189,15 @@ async function submit(body: any): Promise<Response> {
     if (s.size > MAX_FILE_BYTES) {
       fileErrors.push({ field: `${kind}_file`, message: "File size must not exceed 10 MB." });
     }
+  }
+
+  // Degree Marksheet and Diploma/ITI Marksheet are alternatives — each is
+  // individually optional, but at least one of the two must be present.
+  // 10th and 12th Marksheet requirements are untouched by this rule.
+  const DEGREE_DIPLOMA_MSG = "Please upload at least one: Degree Marksheet or Diploma or ITI Marksheet.";
+  if (!stagedByKind.has("marksheet_degree") && !stagedByKind.has("marksheet_diploma_iti")) {
+    fileErrors.push({ field: "marksheet_degree_file", message: DEGREE_DIPLOMA_MSG });
+    fileErrors.push({ field: "marksheet_diploma_iti_file", message: DEGREE_DIPLOMA_MSG });
   }
 
     // A PWD certificate must not survive a "No - 2" answer (§15).

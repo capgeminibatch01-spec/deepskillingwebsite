@@ -141,7 +141,7 @@ create table if not exists public.registrations (
   constraint reg_email_chk       check (email ~ '^[a-z0-9]+([._%+-][a-z0-9]+)*@gmail\.com$'),
   constraint reg_first_name_chk  check (btrim(first_name) <> ''),
   constraint reg_last_name_chk   check (btrim(last_name)  <> ''),
-  constraint reg_parent_name_chk check (btrim(parent_name) <> ''),
+  constraint reg_parent_name_chk check (parent_name ~ '^[^,]*[A-Za-z][^,]*,[^,]*[A-Za-z][^,]*$'),
   constraint reg_serial_chk      check (serial_no > 0),
   constraint reg_mafoi_chk       check (mafoi_id ~ '^DS[0-9]{3,}$'),
 

@@ -314,7 +314,15 @@ window.DS = window.DS || {};
 
     domain_course: (v) => (!v ? "Please select a domain course." : null),
     pwd_status: (v) => (!v ? "Please answer the disability question." : null),
-    parent_name: (v) => (!v.trim() ? "Please enter the name of the parent." : null),
+        parent_name: (v) => {
+      const val = (v || "").trim();
+      if (!val) return "Please enter the name of the parent.";
+      const parts = val.split(",").map((p) => p.trim()).filter(Boolean);
+      if (parts.length < 2 || parts.some((p) => p.length < 2)) {
+        return "Please enter both father's and mother's names, separated by a comma (e.g. Dhanaraj T, Parimalam D).";
+      }
+      return null;
+    },
 
     alternative_contact_number: (v) => {
       if (!v) return "Please enter an alternative contact number.";
