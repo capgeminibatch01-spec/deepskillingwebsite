@@ -23,9 +23,17 @@
 
   --ds-radius: 14px;
   --ds-radius-lg: 20px;
-  --ds-shadow-sm: 0 1px 2px rgba(10, 35, 80, .06), 0 1px 3px rgba(10, 35, 80, .05);
+    --ds-shadow-sm: 0 1px 2px rgba(10, 35, 80, .06), 0 1px 3px rgba(10, 35, 80, .05);
   --ds-shadow: 0 4px 16px rgba(10, 35, 80, .08);
   --ds-shadow-lg: 0 18px 48px rgba(10, 35, 80, .14);
+  /* Enterprise-admin accents (used only by .ds-admin-* rules below) */
+    --ds-admin-sidebar-start: #0d1b3d;
+  --ds-admin-sidebar-end:   #142a5c;
+  --ds-admin-accent:        var(--ds-600);
+  --ds-admin-border:        #e5e9f2;
+  --ds-admin-surface:       #ffffff;
+  --ds-admin-bg:            #f6f8fc;
+  --ds-admin-text-soft:     #64748b;
 
   --ds-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
              "Helvetica Neue", Arial, sans-serif;
@@ -461,15 +469,15 @@ body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
 /* Buttons                                                             */
 /* ------------------------------------------------------------------ */
 .btn-ds {
-  background: linear-gradient(140deg, var(--ds-600), var(--ds-800));
+  background: var(--ds-admin-accent);
   color: #fff;
   border: 0;
   border-radius: var(--ds-radius);
-  font-weight: 650;
+  font-weight: 600;
   padding: .78rem 1.6rem;
-  letter-spacing: .005em;
-  box-shadow: 0 8px 22px rgba(14, 75, 255, .26);
-  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease;
+  letter-spacing: .002em;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .08);
+  transition: transform .12s ease, box-shadow .2s ease, filter .2s ease, background .15s ease;
   min-height: 50px;
 }
 .btn-ds-sm {
@@ -481,8 +489,9 @@ body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
 
 .btn-ds:hover:not(:disabled) {
   color: #fff;
-  filter: brightness(1.06);
-  box-shadow: 0 12px 28px rgba(14, 75, 255, .32);
+  background: #2563eb;
+  filter: none;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, .28);
   transform: translateY(-1px);
 }
 
@@ -762,17 +771,19 @@ body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
 }
 
 .ds-stat {
-  background: var(--ds-white);
-  border: 1px solid var(--ds-200);
-  border-radius: var(--ds-radius-lg);
-  padding: 1.1rem 1.2rem;
-  box-shadow: var(--ds-shadow-sm);
+  background: var(--ds-admin-surface);
+  border: 1px solid var(--ds-admin-border);
+  border-top: 2.5px solid var(--ds-admin-accent);
+  border-radius: 10px;
+  padding: .75rem .9rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
   height: 100%;
   display: flex;
   align-items: center;
-  gap: .9rem;
+  gap: .65rem;
   transition: transform .15s ease, box-shadow .15s ease;
 }
+.ds-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15, 23, 42, .08); }
 .ds-stat:hover {
   transform: translateY(-3px);
   box-shadow: var(--ds-shadow-lg);
@@ -788,12 +799,12 @@ body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
   box-shadow: var(--ds-shadow-lg);
 }
 .ds-stat-icon {
-  width: 44px; height: 44px;
+  width: 34px; height: 34px;
   border-radius: 50%;               /* circle, matches the section-num circles */
   display: grid; place-items: center;
   background: var(--ds-100);
   color: var(--ds-800);
-  font-size: 1.18rem;
+  font-size: .95rem;
   flex: 0 0 auto;
 }
 .ds-stat-icon.solid {
@@ -803,50 +814,49 @@ body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
 }
 
 .ds-stat-label {
-  font-size: .74rem;
+  font-size: .63rem;
   font-weight: 650;
-  letter-spacing: .07em;
+  letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--ds-muted);
-  margin-bottom: .05rem;
+  color: var(--ds-admin-text-soft);
+  margin-bottom: .02rem;
 }
-
 .ds-stat-value {
-  font-size: 1.65rem;
-  font-weight: 800;
+  font-size: 1.3rem;
+  font-weight: 750;
   color: var(--ds-900);
   line-height: 1.1;
+  letter-spacing: -.01em;
   font-variant-numeric: tabular-nums;
 }
 
 .ds-table-wrap {
   overflow-x: auto;
-  border-radius: var(--ds-radius-lg);
+  border-radius: 10px;
   -webkit-overflow-scrolling: touch;
 }
 
-.ds-table { margin: 0; font-size: .845rem; white-space: nowrap; min-width: 1500px; }
-
+.ds-table { margin: 0; font-size: .8rem; white-space: nowrap; min-width: 1500px; }
 .ds-table thead th {
-  background: linear-gradient(100deg, var(--ds-900), var(--ds-800));
-  color: #fff;
+  background: var(--ds-admin-sidebar-start);
+  color: rgba(255,255,255,.92);
   font-weight: 600;
-  font-size: .74rem;
+  font-size: .67rem;
   letter-spacing: .05em;
   text-transform: uppercase;
-  padding: .72rem .8rem;
+  padding: .55rem .65rem;
   border: 0;
   position: sticky;
   top: 0;
   z-index: 2;
 }
-
 .ds-table tbody td {
-  padding: .66rem .8rem;
+  padding: .5rem .65rem;
   vertical-align: middle;
-  border-bottom: 1px solid var(--ds-100);
+  border-bottom: 1px solid var(--ds-admin-border);
   color: var(--ds-text);
 }
+.ds-table tbody tr:nth-child(even) td { background: #fafbfd; }
 
 .ds-table tbody tr:hover td { background: var(--ds-50); }
 
@@ -859,13 +869,14 @@ body::after  { width: 260px; height: 260px; bottom: -90px; right: -80px; }
 
 .ds-chip {
   display: inline-block;
-  background: var(--ds-100);
-  color: var(--ds-800);
-  border: 1px solid var(--ds-200);
-  border-radius: 999px;
-  padding: .1rem .55rem;
-  font-size: .74rem;
-  font-weight: 600;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #e0e7ff;
+  border-radius: 6px;
+  padding: .12rem .5rem;
+  font-size: .72rem;
+  font-weight: 650;
+  letter-spacing: .01em;
 }
 
 .ds-doc-link {
@@ -972,3 +983,149 @@ select:focus-visible,
 }
 
 @media print { .ds-navbar, .ds-progress, .btn-ds, .ds-footer { display: none !important; } }
+
+/* ===================================================================== */
+/* Admin panel — sidebar layout (added; does not modify existing rules)  */
+/* ===================================================================== */
+/* ===================================================================== */
+/* Admin panel — sidebar layout (revised: compact pass)                  */
+/* ===================================================================== */
+/* ===================================================================== */
+/* Admin panel — enterprise-polish pass                                  */
+/* ===================================================================== */
+.ds-admin-shell { display: flex; min-height: 100vh; background: var(--ds-admin-bg); }
+.ds-admin-sidebar {
+  width: 216px; flex: 0 0 216px;
+  background: linear-gradient(180deg, var(--ds-admin-sidebar-start), var(--ds-admin-sidebar-end));
+  color: #fff; padding: 1.1rem .8rem; display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+.ds-admin-brand {
+  display: flex; align-items: center; gap: .6rem; margin-bottom: 1.25rem;
+  padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.ds-admin-brand-icon {
+  width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); font-size: .95rem;
+  color: #cfe0ff;
+}
+.ds-admin-brand-name { font-weight: 700; font-size: .85rem; line-height: 1.25; letter-spacing: -.01em; }
+.ds-admin-brand-sub { font-size: .67rem; color: rgba(255,255,255,.55); letter-spacing: .01em; }
+.ds-admin-nav-label {
+  font-size: .6rem; font-weight: 700; letter-spacing: .09em; text-transform: uppercase;
+  color: rgba(255,255,255,.4); margin: .9rem .55rem .35rem;
+}
+.ds-admin-nav { display: flex; flex-direction: column; gap: .12rem; }
+.ds-admin-nav-link {
+  position: relative;
+  display: flex; align-items: center; gap: .6rem; width: 100%; text-align: left;
+  background: transparent; border: 0; color: rgba(255,255,255,.72);
+  padding: .5rem .65rem; border-radius: 8px; font-size: .81rem; font-weight: 550;
+  text-decoration: none; transition: background .15s ease, color .15s ease;
+}
+.ds-admin-nav-link i { font-size: .88rem; width: 16px; text-align: center; flex: 0 0 auto; }
+.ds-admin-nav-link:hover { background: rgba(255,255,255,.06); color: #fff; }
+.ds-admin-nav-link.active {
+  background: rgba(59, 130, 246, .18); color: #fff; font-weight: 650;
+}
+.ds-admin-nav-link.active::before {
+  content: ""; position: absolute; left: -.8rem; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 60%; border-radius: 0 3px 3px 0; background: var(--ds-admin-accent);
+}
+.ds-admin-nav-count {
+  margin-left: auto; background: rgba(255,255,255,.16); border-radius: 999px;
+  padding: .02rem .42rem; font-size: .65rem; font-weight: 700;
+}
+.ds-admin-logout {
+  margin-top: auto; color: #fca5a5; border-top: 1px solid rgba(255,255,255,.08);
+  padding-top: .7rem; margin-top: .5rem;
+}
+.ds-admin-logout:hover { background: rgba(255,255,255,.06); color: #fecaca; }
+.ds-admin-main { flex: 1 1 auto; min-width: 0; }
+.ds-admin-header {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--ds-admin-surface); border-bottom: 1px solid var(--ds-admin-border);
+  padding: .75rem 1.4rem; position: sticky; top: 0; z-index: 5;
+}
+.ds-admin-header-crumb {
+  font-weight: 650; color: var(--ds-900); display: flex; align-items: center; gap: .45rem;
+  font-size: .9rem; letter-spacing: -.005em;
+}
+.ds-admin-header-crumb i { color: var(--ds-admin-accent); }
+.ds-admin-header-right { display: flex; align-items: center; gap: .7rem; }
+.ds-admin-date {
+  color: var(--ds-admin-text-soft); font-size: .78rem; font-weight: 500;
+  padding-right: .7rem; border-right: 1px solid var(--ds-admin-border);
+}
+.ds-admin-avatar {
+  width: 29px; height: 29px; border-radius: 50%; display: grid; place-items: center;
+  background: linear-gradient(140deg, var(--ds-admin-accent), var(--ds-800)); color: #fff; font-size: .78rem;
+}
+.ds-admin-admin-label { font-weight: 600; color: var(--ds-900); font-size: .78rem; }
+.ds-admin-content { padding: 1.1rem 1.4rem; }
+.ds-admin-page[hidden] { display: none; }
+.ds-admin-page-head h1, .ds-admin-page-head-row h1 {
+  font-size: 1.2rem; font-weight: 750; color: var(--ds-900); margin-bottom: .1rem; letter-spacing: -.015em;
+}
+.ds-admin-page-head p, .ds-admin-page-head-row p { color: var(--ds-admin-text-soft); font-size: .81rem; margin: 0; }
+.ds-admin-page-head { margin-bottom: 1rem; }
+.ds-admin-page-head-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 1rem; margin-bottom: .85rem; flex-wrap: wrap;
+}
+.ds-admin-filterbar {
+  display: flex; flex-wrap: nowrap; gap: .5rem; margin-bottom: .65rem;
+  background: var(--ds-admin-surface); border: 1px solid var(--ds-admin-border); border-radius: 10px;
+  padding: .55rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); overflow-x: auto;
+}
+.ds-admin-search {
+  flex: 1 1 200px; min-width: 160px; display: flex; align-items: center; gap: .4rem;
+  border: 1px solid var(--ds-admin-border); border-radius: 8px; padding: .38rem .6rem;
+  background: var(--ds-admin-bg); transition: border-color .15s ease, background .15s ease;
+}
+.ds-admin-search:focus-within { border-color: var(--ds-admin-accent); background: #fff; }
+.ds-admin-search i { color: #94a3b8; font-size: .85rem; }
+.ds-admin-search input { border: 0; outline: none; flex: 1; font-size: .82rem; background: transparent; min-width: 0; color: var(--ds-text); }
+.ds-admin-filter {
+  flex: 0 0 auto; width: 128px; min-height: 34px; font-size: .8rem;
+  padding: .35rem .5rem; border-radius: 8px; border-color: var(--ds-admin-border) !important;
+}
+.ds-admin-clear {
+  flex: 0 0 auto; display: flex; align-items: center; gap: .3rem;
+  background: var(--ds-admin-surface); border: 1px solid var(--ds-admin-border); color: var(--ds-admin-text-soft);
+  border-radius: 8px; padding: 0 .65rem; font-size: .8rem; font-weight: 600; white-space: nowrap;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.ds-admin-clear:hover { background: var(--ds-admin-bg); color: var(--ds-800); border-color: var(--ds-400); }
+.ds-admin-count { font-weight: 600; color: var(--ds-admin-text-soft); font-size: .8rem; margin-bottom: .55rem; }
+@media (max-width: 900px) {
+  .ds-admin-sidebar { position: fixed; left: -230px; z-index: 40; transition: left .2s ease; box-shadow: var(--ds-shadow-lg); }
+  .ds-admin-sidebar.open { left: 0; }
+  .ds-admin-filterbar { flex-wrap: wrap; overflow-x: visible; }
+  .ds-admin-filter { flex: 1 1 45%; width: auto; }
+}
+
+/* ===================================================================== */
+/* Admin dashboard — recent list + top-states bar list                   */
+/* ===================================================================== */
+.ds-admin-panel-head {
+  font-size: .85rem; font-weight: 650; color: var(--ds-900);
+  padding: .8rem 1rem; border-bottom: 1px solid var(--ds-admin-border);
+}
+.ds-admin-recent-list { max-height: 340px; overflow-y: auto; }
+.ds-admin-recent-row {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  padding: .55rem 1rem; border-bottom: 1px solid var(--ds-100); font-size: .8rem;
+}
+.ds-admin-recent-row:last-child { border-bottom: 0; }
+.ds-admin-recent-main { display: flex; align-items: center; gap: .5rem; flex: 1 1 auto; min-width: 0; }
+.ds-admin-recent-name { color: var(--ds-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ds-admin-recent-date { color: var(--ds-admin-text-soft); font-size: .72rem; margin-left: auto; white-space: nowrap; }
+.ds-admin-recent-empty { padding: 1.2rem; text-align: center; color: var(--ds-admin-text-soft); font-size: .82rem; }
+.ds-admin-bar-list { padding: .6rem 1rem 1rem; }
+.ds-admin-bar-row { display: flex; align-items: center; gap: .6rem; padding: .4rem 0; }
+.ds-admin-bar-label { flex: 0 0 100px; font-size: .78rem; color: var(--ds-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ds-admin-bar-track { flex: 1 1 auto; height: 8px; border-radius: 999px; background: var(--ds-100); overflow: hidden; }
+.ds-admin-bar-fill { height: 100%; border-radius: 999px; background: var(--ds-admin-accent); }
+.ds-admin-bar-value { flex: 0 0 auto; font-size: .78rem; font-weight: 650; color: var(--ds-900); width: 22px; text-align: right; }

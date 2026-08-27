@@ -84,10 +84,9 @@
     DS.showBanner("loginBanner", message, true);
   }
 
-  function showLogin() {
+    function showLogin() {
     $("loginView").hidden = false;
     $("dashboardView").hidden = true;
-    $("navActions").hidden = true;
     $("login_password").value = "";
     setLoginBusy(false);
     registrations = [];
@@ -96,28 +95,36 @@
   /* ------------------------------------------------------------------ */
   /* Authorization gate                                                  */
   /* ------------------------------------------------------------------ */
-  async function enterDashboard(session) {
+    async function enterDashboard(session) {
     // Authentication alone is not enough — the UUID must be in admin_users.
     const { data, error } = await DS.supabase
       .from("admin_users")
       .select("user_id")
       .eq("user_id", session.user.id)
       .maybeSingle();
-
     if (error || !data) {
       await DS.supabase.auth.signOut();
       showLogin();
       showLoginError("This account is not authorised to access the admin dashboard.");
       return false;
     }
-
     $("loginView").hidden = true;
     $("dashboardView").hidden = false;
-    $("navActions").hidden = false;
-    $("adminEmail").textContent = session.user.email || "";
-
+    $("adminEmail").textContent = session.user.email || "Admin";
+    $("headerDate").textContent = new Date().toLocaleDateString("en-GB", {
+      weekday: "short", day: "2-digit", month: "short", year: "numeric",
+    }).replace(/,? (\d{4})$/, ", $1");
     await loadRegistrations();
     return true;
+  }
+  function showPage(pageId) {
+    document.querySelectorAll(".ds-admin-page").forEach((el) => el.hidden = (el.id !== pageId));
+    document.querySelectorAll(".ds-admin-nav-link[data-page]").forEach((btn) => {
+      btn.classList.toggle("active", btn.getAttribute("data-page") === pageId);
+    });
+    const crumb = pageId === "dashboardPage" ? "Dashboard" : "Registrations";
+    const icon = pageId === "dashboardPage" ? "bi-grid-1x2-fill" : "bi-people-fill";
+    $("headerCrumb").innerHTML = `<i class="bi ${icon}"></i> ${crumb}`;
   }
 
   /* ------------------------------------------------------------------ */
@@ -142,43 +149,104 @@
     renderTable();
   }
 
-  function renderStats() {
+    function renderStats() {
     const count = (course) => registrations.filter((r) => r.domain_course === course).length;
     $("statTotal").textContent = registrations.length;
     $("statDA").textContent = count("Data Analytics");
     $("statAI").textContent = count("Artificial Intelligence");
     $("statCS").textContent = count("Cyber Security");
+    $("statFemale").textContent = registrations.filter((r) => r.gender === "Female").length;
+    $("statMale").textContent = registrations.filter((r) => r.gender === "Male").length;
+    $("statEws").textContent = registrations.filter((r) => r.ews_category === "Yes - 1").length;
+    $("statPwd").textContent = registrations.filter((r) => r.pwd_status === "Yes - 1").length;
+    renderRecentList();
+    renderTopStates();
+  }
+  function renderRecentList() {
+    const el = $("recentList");
+    if (!el) return;
+    const esc = DS.escapeHtml;
+    const recent = [...registrations]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 8);
+    if (!recent.length) {
+      el.innerHTML = '<div class="ds-admin-recent-empty">No registrations yet.</div>';
+      return;
+    }
+    el.innerHTML = recent.map((r) => `
+      <div class="ds-admin-recent-row">
+        <div class="ds-admin-recent-main">
+          <span class="ds-mafoi">${esc(r.mafoi_id)}</span>
+          <span class="ds-admin-recent-name">${esc(r.first_name)} ${esc(r.last_name)}</span>
+        </div>
+        <span class="ds-chip">${esc(r.domain_course)}</span>
+        <span class="ds-admin-recent-date">${esc(DS.formatDateTime(r.created_at))}</span>
+      </div>`).join("");
+  }
+  function renderTopStates() {
+    const el = $("topStatesList");
+    if (!el) return;
+    const esc = DS.escapeHtml;
+    const counts = {};
+    registrations.forEach((r) => {
+      if (!r.beneficiary_state) return;
+      counts[r.beneficiary_state] = (counts[r.beneficiary_state] || 0) + 1;
+    });
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    if (!top.length) {
+      el.innerHTML = '<div class="ds-admin-recent-empty">No data yet.</div>';
+      return;
+    }
+    const max = top[0][1];
+    el.innerHTML = top.map(([state, n]) => `
+      <div class="ds-admin-bar-row">
+        <span class="ds-admin-bar-label">${esc(state)}</span>
+        <div class="ds-admin-bar-track"><div class="ds-admin-bar-fill" style="width:${Math.round((n / max) * 100)}%"></div></div>
+        <span class="ds-admin-bar-value">${n}</span>
+      </div>`).join("");
   }
 
+    function populateStateFilter() {
+    const select = $("stateFilter");
+    const current = select.value;
+    const states = [...new Set(registrations.map((r) => r.beneficiary_state).filter(Boolean))].sort();
+    select.innerHTML = '<option value="">All Locations</option>' +
+      states.map((s) => `<option${s === current ? " selected" : ""}>${DS.escapeHtml(s)}</option>`).join("");
+  }
   function visibleRows() {
     const term = $("searchInput").value.trim().toLowerCase();
     const course = $("courseFilter").value;
-
+    const education = $("educationFilter").value;
+    const state = $("stateFilter").value;
+    const date = $("dateFilter").value; // yyyy-mm-dd
     return registrations.filter((r) => {
       if (course && r.domain_course !== course) return false;
+      if (education && r.last_completed_education !== education) return false;
+      if (state && r.beneficiary_state !== state) return false;
+      if (date && (r.created_at || "").slice(0, 10) !== date) return false;
       if (!term) return true;
       return [r.mafoi_id, r.first_name, r.last_name, r.email, r.contact_number]
         .some((v) => String(v || "").toLowerCase().includes(term));
     });
   }
 
-  function renderTable() {
+    function renderTable() {
+    populateStateFilter();
+    $("navRegCount").textContent = registrations.length;
     const rows = visibleRows();
     const body = $("tableBody");
     const esc = DS.escapeHtml;
-
     if (!rows.length) {
       body.innerHTML = "";
       $("emptyState").hidden = false;
       $("emptyText").textContent = registrations.length
         ? "No registrations match your search or filter."
         : "No registrations yet.";
-      $("resultCount").textContent = `Showing 0 of ${registrations.length} registrations`;
+      $("resultCount").textContent = "0 registrations found";
       return;
     }
-
     $("emptyState").hidden = true;
-    $("resultCount").textContent = `Showing ${rows.length} of ${registrations.length} registrations`;
+    $("resultCount").textContent = `${rows.length} registration${rows.length === 1 ? "" : "s"} found`;
 
         body.innerHTML = rows.map((r) => `
       <tr>
@@ -236,10 +304,23 @@
   /* ------------------------------------------------------------------ */
   /* Interactions                                                        */
   /* ------------------------------------------------------------------ */
-  function wireDashboard() {
+    function wireDashboard() {
+    document.querySelectorAll(".ds-admin-nav-link[data-page]").forEach((btn) => {
+      btn.addEventListener("click", () => showPage(btn.getAttribute("data-page")));
+    });
     $("searchInput").addEventListener("input", renderTable);
     $("courseFilter").addEventListener("change", renderTable);
-    $("refreshBtn").addEventListener("click", loadRegistrations);
+    $("educationFilter").addEventListener("change", renderTable);
+    $("stateFilter").addEventListener("change", renderTable);
+    $("dateFilter").addEventListener("change", renderTable);
+    $("clearFiltersBtn").addEventListener("click", function () {
+      $("searchInput").value = "";
+      $("courseFilter").value = "";
+      $("educationFilter").value = "";
+      $("stateFilter").value = "";
+      $("dateFilter").value = "";
+      renderTable();
+    });
 
     $("excelBtn").addEventListener("click", async function () {
       DS.hideBanner("dashBanner");
