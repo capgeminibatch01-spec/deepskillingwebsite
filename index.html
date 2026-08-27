@@ -90,9 +90,10 @@
           <div class="col-md-6">
             <div class="ds-field" data-field="unique_id_type">
               <label class="ds-label" for="unique_id_type">Type of unique ID<span class="ds-req">*</span></label>
-              <select class="form-select" id="unique_id_type" name="unique_id_type"
+                            <select class="form-select" id="unique_id_type" name="unique_id_type"
                       aria-describedby="unique_id_type_error" required>
                 <option value="">Select an option</option>
+                <option>Aadhaar Card</option>
                 <option>PAN Card</option>
                 <option>Electoral Card</option>
                 <option>Driving License</option>
@@ -163,27 +164,25 @@
             </div>
           </div>
 
-          <!-- 7. Beneficiary State (Current) -->
+                    <!-- 7. Beneficiary State (Current) -->
           <div class="col-md-6">
             <div class="ds-field" data-field="beneficiary_state">
               <label class="ds-label" for="beneficiary_state">Beneficiary State (Current)<span class="ds-req">*</span></label>
-              <select class="form-select" id="beneficiary_state" name="beneficiary_state"
-                      aria-describedby="beneficiary_state_error" required>
-                <option value="">Select an option</option>
-                <option>TamilNadu</option>
-                <option>Andhra Pradesh</option>
-              </select>
+              <input type="text" class="form-control" id="beneficiary_state" name="beneficiary_state"
+                     list="beneficiary_state_list" autocomplete="off" placeholder="Start typing a state or UT"
+                     aria-describedby="beneficiary_state_error" required>
+              <datalist id="beneficiary_state_list"></datalist>
               <div class="ds-error" id="beneficiary_state_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
           </div>
-
           <!-- 8. District (Current) -->
           <div class="col-md-6">
             <div class="ds-field" data-field="district">
               <label class="ds-label" for="district">District (Current)<span class="ds-req">*</span></label>
-              <select class="form-select" id="district" name="district" aria-describedby="district_error" required>
-                <option value="">Select a state first</option>
-              </select>
+              <input type="text" class="form-control" id="district" name="district"
+                     list="district_list" autocomplete="off" placeholder="Select a state first"
+                     aria-describedby="district_error" disabled required>
+              <datalist id="district_list"></datalist>
               <div class="ds-error" id="district_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
           </div>
@@ -260,41 +259,44 @@
             </div>
           </div>
 
-          <!-- 2. Degree / Specialization -->
+                    <!-- 2. Degree / Specialization (hidden when "Not completed formal education") -->
           <div class="col-md-6">
-            <div class="ds-field" data-field="degree_specialization">
-              <label class="ds-label" for="degree_specialization">Degree / Specialization<span class="ds-req">*</span></label>
-              <select class="form-select" id="degree_specialization" name="degree_specialization"
-                      aria-describedby="degree_specialization_error" required>
-                <option value="">Select an option</option>
-                <option>B.A.</option>
-                <option>B.Sc.</option>
-                <option>B.Com.</option>
-                <option>B.Tech/B.E.</option>
-                <option>BCA</option>
-                <option>M.A.</option>
-                <option>M.Sc.</option>
-                <option>MBA</option>
-                <option>M.Tech</option>
-                <option>Diploma</option>
-                <option>ITI</option>
-              </select>
-              <div class="ds-error" id="degree_specialization_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+            <div class="ds-conditional show" id="degreeWrap">
+              <div class="ds-field" data-field="degree_specialization">
+                <label class="ds-label" for="degree_specialization">Degree / Specialization<span class="ds-req">*</span></label>
+                <select class="form-select" id="degree_specialization" name="degree_specialization"
+                        aria-describedby="degree_specialization_error" required>
+                  <option value="">Select an option</option>
+                  <option>B.A.</option>
+                  <option>B.Sc.</option>
+                  <option>B.Com.</option>
+                  <option>B.Tech/B.E.</option>
+                  <option>BCA</option>
+                  <option>M.A.</option>
+                  <option>M.Sc.</option>
+                  <option>MBA</option>
+                  <option>M.Tech</option>
+                  <option>Diploma</option>
+                  <option>ITI</option>
+                </select>
+                <div class="ds-error" id="degree_specialization_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+              </div>
             </div>
           </div>
-
-          <!-- 3. Supporting document (Education) -->
+          <!-- 3. Supporting document (Education) (hidden when "Not completed formal education") -->
           <div class="col-12">
-            <div class="ds-field" data-field="education_file">
-              <label class="ds-label" for="education_file">Supporting document (Education)<span class="ds-req">*</span></label>
-              <span class="ds-help" id="education_file_help">Upload 10th, 12th or Degree Marksheet.PDF or JPG, maximum 10 MB.</span>
-              <div class="ds-file-drop">
-                <input type="file" id="education_file" name="education_file"
-                       accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg"
-                       aria-describedby="education_file_help education_file_error" required>
-                <div class="ds-file-meta" id="education_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
+            <div class="ds-conditional show" id="educationFileWrap">
+              <div class="ds-field" data-field="education_file">
+                <label class="ds-label" for="education_file">Supporting document (Education)<span class="ds-req">*</span></label>
+                <span class="ds-help" id="education_file_help">Upload 10th, 12th or Degree Marksheet.PDF or JPG, maximum 10 MB.</span>
+                <div class="ds-file-drop">
+                  <input type="file" id="education_file" name="education_file"
+                         accept=".pdf,.jpg,.jpeg,application/pdf,image/jpeg"
+                         aria-describedby="education_file_help education_file_error" required>
+                  <div class="ds-file-meta" id="education_file_meta"><i class="bi bi-paperclip"></i><span></span></div>
+                </div>
+                <div class="ds-error" id="education_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
               </div>
-              <div class="ds-error" id="education_file_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
             </div>
           </div>
 

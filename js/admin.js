@@ -180,9 +180,11 @@
     $("emptyState").hidden = true;
     $("resultCount").textContent = `Showing ${rows.length} of ${registrations.length} registrations`;
 
-    body.innerHTML = rows.map((r) => `
+        body.innerHTML = rows.map((r) => `
       <tr>
         <td><span class="ds-mafoi">${esc(r.mafoi_id)}</span></td>
+        <td>${esc(r.unique_id_type)}</td>
+        <td>${esc(r.id_proof)}</td>
         <td>${esc(r.first_name)}</td>
         <td>${esc(r.last_name)}</td>
         <td>${esc(DS.formatDate(r.date_of_birth))}</td>

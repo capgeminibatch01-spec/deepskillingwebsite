@@ -1,4 +1,4 @@
-import { ALLOWED_EXTENSIONS, ALLOWED_MIME, DISTRICTS, MAX_FILE_BYTES, OPTIONS } from "./constants.ts";
+import { ALLOWED_EXTENSIONS, ALLOWED_MIME, DISTRICTS, ID_PROOF_PATTERNS, MAX_FILE_BYTES, OPTIONS } from "./constants.ts";
 
 export interface FieldError { field: string; message: string; }
 
@@ -80,10 +80,18 @@ export function validateRegistration(d: any): FieldError[] {
   req("unique_id_type", "Please select the type of unique ID.");
   oneOf("unique_id_type", OPTIONS.unique_id_type, "Please select a valid type of unique ID.");
 
-  const idProof = str("id_proof");
-  if (!idProof) e.push({ field: "id_proof", message: "Please enter your ID number." });
-  else if (!/^[A-Za-z0-9]+$/.test(idProof)) {
-    e.push({ field: "id_proof", message: "ID proof must contain only letters and numbers." });
+    const idProof = str("id_proof");
+  if (!idProof) {
+    e.push({ field: "id_proof", message: "Please enter your ID number." });
+  } else {
+    const idTypePattern = ID_PROOF_PATTERNS[str("unique_id_type")];
+    if (idTypePattern) {
+      if (!idTypePattern.regex.test(idProof)) {
+        e.push({ field: "id_proof", message: idTypePattern.message });
+      }
+    } else if (!/^[A-Za-z0-9]+$/.test(idProof)) {
+      e.push({ field: "id_proof", message: "ID proof must contain only letters and numbers." });
+    }
   }
 
   req("first_name", "Please enter your first name.");
@@ -138,8 +146,15 @@ export function validateRegistration(d: any): FieldError[] {
   req("last_completed_education", "Please select your last completed education.");
   oneOf("last_completed_education", OPTIONS.last_completed_education, "Please select a valid education option.");
 
-  req("degree_specialization", "Please select your degree / specialization.");
-  oneOf("degree_specialization", OPTIONS.degree_specialization, "Please select a valid degree / specialization.");
+    const degree = str("degree_specialization");
+  if (str("last_completed_education") !== "1-Not completed formal education") {
+    if (!degree) e.push({ field: "degree_specialization", message: "Please select your degree / specialization." });
+    else if (!OPTIONS.degree_specialization.includes(degree as never)) {
+      e.push({ field: "degree_specialization", message: "Please select a valid degree / specialization." });
+    }
+  } else if (degree) {
+    e.push({ field: "degree_specialization", message: "Degree / Specialization does not apply when education is not completed." });
+  }
 
   req("annual_income", "Please select your annual income bracket.");
   oneOf("annual_income", OPTIONS.annual_income, "Please select a valid annual income bracket.");

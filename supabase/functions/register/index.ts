@@ -132,7 +132,8 @@ async function submit(body: any): Promise<Response> {
   if (errors.length) return json({ ok: false, code: "VALIDATION_ERROR", errors }, 400);
 
   // ---- 2. Which documents must exist? --------------------------------
-  const requiredKinds: DocKind[] = ["education", "ews"];
+    const requiredKinds: DocKind[] = ["ews"];
+  if (data.last_completed_education !== "1-Not completed formal education") requiredKinds.push("education");
   if (data.pwd_status === "Yes - 1") requiredKinds.push("pwd");
 
   // ---- 3. Inspect what was actually staged ---------------------------
@@ -169,6 +170,12 @@ async function submit(body: any): Promise<Response> {
     }
   }
 
+    // An education document must not survive a "Not completed formal
+  // education" answer, mirroring the PWD rule below.
+  if (data.last_completed_education === "1-Not completed formal education" && stagedByKind.has("education")) {
+    await admin.storage.from(BUCKET).remove([stagedByKind.get("education")!.path]);
+    stagedByKind.delete("education");
+  }
   // A PWD certificate must not survive a "No - 2" answer (§15).
   if (data.pwd_status === "No - 2" && stagedByKind.has("pwd")) {
     await admin.storage.from(BUCKET).remove([stagedByKind.get("pwd")!.path]);
@@ -217,7 +224,7 @@ async function submit(body: any): Promise<Response> {
     parent_name: str(data.parent_name),
     alternative_contact_number: str(data.alternative_contact_number),
     social_category: str(data.social_category),
-    education_ext: stagedByKind.get("education")!.ext,
+        education_ext: stagedByKind.get("education")?.ext ?? "",
     ews_ext: stagedByKind.get("ews")!.ext,
     pwd_ext: stagedByKind.get("pwd")?.ext ?? "",
   };

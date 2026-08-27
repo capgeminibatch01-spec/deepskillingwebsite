@@ -12,8 +12,9 @@
     "pwd_status", "parent_name", "alternative_contact_number", "social_category",
   ];
 
-  const FILE_FIELDS = {
-    education: { input: "education_file", field: "education_file", required: () => true },
+    const FILE_FIELDS = {
+    education: { input: "education_file", field: "education_file",
+                 required: () => val("last_completed_education") !== "1-Not completed formal education" },
     ews:       { input: "ews_file",       field: "ews_file",       required: () => true },
     pwd:       { input: "pwd_file",       field: "pwd_file",
                  required: () => val("pwd_status") === "Yes - 1" },
@@ -36,8 +37,10 @@
       return;
     }
 
-    setDobBounds();
+        setDobBounds();
     wireStateDistrict();
+    wireIdProof();
+    wireEducation();
     wireOccupation();
     wirePwd();
     wireFiles();
@@ -68,33 +71,103 @@
   /* ------------------------------------------------------------------ */
   /* State → District (§7.8)                                             */
   /* ------------------------------------------------------------------ */
-  function wireStateDistrict() {
+    function wireStateDistrict() {
     const state = $("beneficiary_state");
     const district = $("district");
-
-    state.addEventListener("change", function () {
-      // Always clear the previous district when the state changes.
-      district.innerHTML = "";
-      DS.clearFieldError("district");
-
+    const stateList = $("beneficiary_state_list");
+    const districtList = $("district_list");
+    // Populate the state/UT typeahead once, on load.
+    stateList.innerHTML = DS.STATES.map((name) => `<option value="${name}"></option>`).join("");
+    function syncDistrictOptions() {
       const options = DS.DISTRICTS[state.value] || [];
-      const placeholder = document.createElement("option");
-      placeholder.value = "";
-      placeholder.textContent = options.length ? "Select a district" : "Select a state first";
-      district.appendChild(placeholder);
-
-      options.forEach((name) => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        district.appendChild(opt);
-      });
-
+      districtList.innerHTML = options.map((name) => `<option value="${name}"></option>`).join("");
+      district.disabled = options.length === 0;
+      district.placeholder = options.length ? "Start typing a district" : "Select a state first";
+    }
+    // "input" fires on every keystroke, so a district list refreshes as
+    // soon as a full, valid state name is typed — not only on blur/change.
+    state.addEventListener("input", function () {
+      // Always clear the previous district when the state changes.
       district.value = "";
+      DS.clearFieldError("district");
+      syncDistrictOptions();
       updateProgress();
     });
   }
 
+    /* ------------------------------------------------------------------ */
+  /* Type of Unique ID → Id proof format                                 */
+  /* ------------------------------------------------------------------ */
+    function wireIdProof() {
+    const typeSelect = $("unique_id_type");
+    const idProof = $("id_proof");
+    const PLACEHOLDERS = {
+      "Aadhaar Card": "Enter 12-digit Aadhaar number",
+      "PAN Card": "Enter PAN number (e.g., GPWPD9017R)",
+      "Electoral Card": "Enter Electoral ID (e.g., ABC1234567)",
+      "Driving License": "Enter Driving License number",
+      "College ID": "Enter College ID",
+      "School 10th / 12th Marksheet": "Enter Roll / Register number",
+    };
+    function applyConstraints() {
+      const pattern = DS.ID_PROOF_PATTERNS[typeSelect.value];
+      idProof.maxLength = pattern ? pattern.maxLength : 30;
+      idProof.inputMode = pattern ? pattern.inputMode : "text";
+      idProof.placeholder = PLACEHOLDERS[typeSelect.value] || "e.g. GPWPD901R";
+    }
+    typeSelect.addEventListener("change", function () {
+      // A value valid for the previous ID type is not necessarily valid
+      // for the new one — clear it rather than let a stale value slip
+      // through unrevalidated (matches the state→district reset pattern).
+      idProof.value = "";
+      DS.clearFieldError("id_proof");
+      applyConstraints();
+      updateProgress();
+    });
+    idProof.addEventListener("input", function () {
+      const pattern = DS.ID_PROOF_PATTERNS[typeSelect.value];
+      if (!pattern || !pattern.normalize) return;
+      const pos = idProof.selectionStart;
+      const before = idProof.value;
+      const after = pattern.normalize(before);
+      if (after !== before) {
+        idProof.value = after;
+        const shift = before.length - after.length;
+        const newPos = Math.max(0, pos - shift);
+        idProof.setSelectionRange(newPos, newPos);
+      }
+    });
+    applyConstraints();
+  }
+  /* ------------------------------------------------------------------ */
+  /* Last Completed Education → Degree / Education document              */
+  /* ------------------------------------------------------------------ */
+  function wireEducation() {
+    const education = $("last_completed_education");
+    const degreeWrap = $("degreeWrap");
+    const degreeSelect = $("degree_specialization");
+    const fileWrap = $("educationFileWrap");
+    const fileInput = $("education_file");
+    function sync() {
+      const notCompleted = education.value === "1-Not completed formal education";
+      degreeWrap.classList.toggle("show", !notCompleted);
+      degreeSelect.disabled = notCompleted;
+      degreeSelect.required = !notCompleted;
+      fileWrap.classList.toggle("show", !notCompleted);
+      fileInput.disabled = notCompleted;
+      fileInput.required = !notCompleted;
+      if (notCompleted) {
+        degreeSelect.value = "";
+        DS.clearFieldError("degree_specialization");
+        fileInput.value = "";
+        $("education_file_meta").classList.remove("show");
+        DS.clearFieldError("education_file");
+      }
+      updateProgress();
+    }
+    education.addEventListener("change", sync);
+    sync();
+  }
   /* ------------------------------------------------------------------ */
   /* Occupation → Institution (§11)                                      */
   /* ------------------------------------------------------------------ */
