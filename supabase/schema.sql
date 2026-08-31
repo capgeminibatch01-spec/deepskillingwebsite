@@ -121,7 +121,7 @@ create table if not exists public.registrations (
     '1-Not completed formal education','2-Completed 12th','3-Diploma/ITI',
     '4-Graduation','5-Post Graduation & above','6-None of the above')),
   constraint reg_degree_chk check (degree_specialization in (
-    'B.A.','B.Sc.','B.Com.','B.Tech/B.E.','BCA','M.A.','M.Sc.','MBA','M.Tech','Diploma','ITI')),
+    'B.A.','B.Sc.','B.Com.','B.Tech/B.E.','BCA','BBA','M.A.','M.Sc.','MBA','M.Tech','Diploma','ITI')),
   constraint reg_income_chk check (annual_income in (
     '1-Less than 99,999','2-1 to 2.99 Lakh','3-3 to 4.99 Lakh','4-5 to 7.99 Lakh','5-Above 8 Lakh')),
   constraint reg_occupation_chk check (occupation in (

@@ -32,7 +32,7 @@ export const OPTIONS = {
     "6-None of the above",
   ],
   degree_specialization: [
-    "B.A.", "B.Sc.", "B.Com.", "B.Tech/B.E.", "BCA",
+    "B.A.", "B.Sc.", "B.Com.", "B.Tech/B.E.", "BCA", "BBA",
     "M.A.", "M.Sc.", "MBA", "M.Tech", "Diploma", "ITI",
   ],
   annual_income: [
