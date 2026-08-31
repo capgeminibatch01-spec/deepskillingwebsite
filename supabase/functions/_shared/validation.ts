@@ -149,15 +149,15 @@ export function validateRegistration(d: any): FieldError[] {
   req("ews_category", "Please answer the EWS question.");
   oneOf("ews_category", OPTIONS.ews_category, "Please select a valid EWS option.");
 
+  req("training_centre_preference", "Please select your training centre preference.");
+  oneOf("training_centre_preference", OPTIONS.training_centre_preference, "Please select a valid training centre preference.");
+
   // ---- Enrolment -----------------------------------------------------
   req("last_completed_education", "Please select your last completed education.");
   oneOf("last_completed_education", OPTIONS.last_completed_education, "Please select a valid education option.");
 
     const degree = str("degree_specialization");
   if (!degree) e.push({ field: "degree_specialization", message: "Please select your degree / specialization." });
-  else if (!OPTIONS.degree_specialization.includes(degree as never)) {
-    e.push({ field: "degree_specialization", message: "Please select a valid degree / specialization." });
-  }
 
   req("annual_income", "Please select your annual income bracket.");
   oneOf("annual_income", OPTIONS.annual_income, "Please select a valid annual income bracket.");

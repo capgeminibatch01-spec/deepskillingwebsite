@@ -23,6 +23,7 @@ export const OPTIONS = {
     "Ladakh","Lakshadweep","Puducherry",
   ],
   ews_category: ["Yes - 1", "No - 2"],
+  training_centre_preference: ["DBV, Perambur", "DBV, Broadway", "MSSW, Egmore"],
   last_completed_education: [
     "1-Not completed formal education",
     "2-Completed 12th",

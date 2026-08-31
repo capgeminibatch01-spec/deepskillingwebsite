@@ -223,6 +223,21 @@
             </div>
           </div>
 
+          <!-- 12. Training Centre Preference -->
+          <div class="col-md-6">
+            <div class="ds-field" data-field="training_centre_preference">
+              <label class="ds-label" for="training_centre_preference">Training Centre Preference<span class="ds-req">*</span></label>
+              <select class="form-select" id="training_centre_preference" name="training_centre_preference"
+                      aria-describedby="training_centre_preference_error" required>
+                <option value="">Select an option</option>
+                <option>DBV, Perambur</option>
+                <option>DBV, Broadway</option>
+                <option>MSSW, Egmore</option>
+              </select>
+              <div class="ds-error" id="training_centre_preference_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
@@ -280,8 +295,17 @@
                   <option>M.Tech</option>
                   <option>Diploma</option>
                   <option>ITI</option>
+                  <option>Others</option>
                 </select>
                 <div class="ds-error" id="degree_specialization_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+              </div>
+              <div class="ds-conditional" id="degreeOtherWrap">
+                <div class="ds-field" data-field="degree_specialization_other">
+                  <label class="ds-label" for="degree_specialization_other">Please specify your Degree / Specialization<span class="ds-req">*</span></label>
+                  <input type="text" class="form-control" id="degree_specialization_other" name="degree_specialization_other"
+                         autocomplete="off" aria-describedby="degree_specialization_other_error" disabled>
+                  <div class="ds-error" id="degree_specialization_other_error" role="alert"><i class="bi bi-exclamation-circle"></i><span></span></div>
+                </div>
               </div>
             </div>
           </div>

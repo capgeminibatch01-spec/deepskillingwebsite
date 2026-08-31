@@ -34,6 +34,7 @@
     ["Contact number",                     (r) => r.contact_number,             "s"],
     ["Email id",                           (r) => r.email,                      "s"],
     ["Do you belong to EWS category?",     (r) => r.ews_category,               "s"],
+    ["Training Centre Preference",         (r) => r.training_centre_preference, "s"],
     ["Last Completed Education",           (r) => r.last_completed_education,   "s"],
     ["Degree / Specialization",            (r) => r.degree_specialization,      "s"],
     ["10th Marksheet",                     (r) => r.marksheet_10th_document_name || "",        "link", (r) => r.marksheet_10th_document_path],

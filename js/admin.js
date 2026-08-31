@@ -262,6 +262,7 @@
         <td>${esc(r.contact_number)}</td>
         <td>${esc(r.email)}</td>
         <td>${esc(r.ews_category)}</td>
+        <td>${esc(r.training_centre_preference)}</td>
         <td>${esc(r.last_completed_education)}</td>
         <td>${esc(r.degree_specialization)}</td>
         <td>${esc(r.annual_income)}</td>

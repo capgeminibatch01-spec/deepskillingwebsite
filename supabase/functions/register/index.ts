@@ -239,6 +239,7 @@ async function submit(body: any): Promise<Response> {
     contact_number: str(data.contact_number),
     email: String(data.email ?? "").trim(),
     ews_category: str(data.ews_category),
+    training_centre_preference: str(data.training_centre_preference),
     last_completed_education: str(data.last_completed_education),
     degree_specialization: str(data.degree_specialization),
     annual_income: str(data.annual_income),

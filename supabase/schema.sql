@@ -81,6 +81,7 @@ create table if not exists public.registrations (
   contact_number              text not null,
   email                       text not null,
   ews_category                text not null,
+  training_centre_preference  text null,
 
   -- Enrolment --------------------------------------------------------
   last_completed_education    text not null,
@@ -117,11 +118,13 @@ create table if not exists public.registrations (
     'Male','Female','Third Gender','Prefer Not to Say')),
   constraint reg_state_chk check (beneficiary_state in ('TamilNadu','Andhra Pradesh')),
   constraint reg_ews_chk check (ews_category in ('Yes - 1','No - 2')),
+  constraint reg_training_centre_chk check (training_centre_preference is null or training_centre_preference in (
+    'DBV, Perambur','DBV, Broadway','MSSW, Egmore')),
   constraint reg_education_chk check (last_completed_education in (
     '1-Not completed formal education','2-Completed 12th','3-Diploma/ITI',
     '4-Graduation','5-Post Graduation & above','6-None of the above')),
-  constraint reg_degree_chk check (degree_specialization in (
-    'B.A.','B.Sc.','B.Com.','B.Tech/B.E.','BCA','BBA','M.A.','M.Sc.','MBA','M.Tech','Diploma','ITI')),
+  constraint reg_degree_chk check (
+    degree_specialization is not null and length(btrim(degree_specialization)) > 0),
   constraint reg_income_chk check (annual_income in (
     '1-Less than 99,999','2-1 to 2.99 Lakh','3-3 to 4.99 Lakh','4-5 to 7.99 Lakh','5-Above 8 Lakh')),
   constraint reg_occupation_chk check (occupation in (
@@ -423,6 +426,7 @@ begin
     id, serial_no, mafoi_id,
     unique_id_type, id_proof, first_name, last_name, date_of_birth, gender,
     beneficiary_state, district, contact_number, email, ews_category,
+    training_centre_preference,
     last_completed_education, degree_specialization,
     marksheet_10th_document_path, marksheet_10th_document_name,
     marksheet_12th_document_path, marksheet_12th_document_name,
@@ -436,6 +440,7 @@ begin
     v_id, v_serial, v_mafoi,
     p->>'unique_id_type', p->>'id_proof', v_first, v_last, v_dob, p->>'gender',
     p->>'beneficiary_state', p->>'district', p->>'contact_number', p->>'email', p->>'ews_category',
+    p->>'training_centre_preference',
     p->>'last_completed_education', p->>'degree_specialization',
     case when v_10th_name is null then null else public.document_path(v_id, v_10th_name) end, v_10th_name,
     case when v_12th_name is null then null else public.document_path(v_id, v_12th_name) end, v_12th_name,

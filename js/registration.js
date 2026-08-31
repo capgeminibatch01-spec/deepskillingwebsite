@@ -7,7 +7,8 @@
   const FIELDS = [
     "unique_id_type", "id_proof", "first_name", "last_name", "date_of_birth",
     "gender", "beneficiary_state", "district", "contact_number", "email",
-    "ews_category", "last_completed_education", "degree_specialization",
+    "ews_category", "training_centre_preference",
+    "last_completed_education", "degree_specialization", "degree_specialization_other",
     "annual_income", "occupation", "institution_type", "domain_course",
     "pwd_status", "parent_name", "alternative_contact_number", "social_category",
   ];
@@ -47,6 +48,7 @@
     wireStateDistrict();
     wireIdProof();
     wireEducation();
+    wireDegreeOther();
     wireOccupation();
     wirePwd();
     wireFiles();
@@ -236,6 +238,30 @@
   function wireEducation() {
     const education = $("last_completed_education");
     education.addEventListener("change", updateProgress);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Degree / Specialization → "Others" free-text field                  */
+  /* ------------------------------------------------------------------ */
+  function wireDegreeOther() {
+    const degree = $("degree_specialization");
+    const wrap = $("degreeOtherWrap");
+    const input = $("degree_specialization_other");
+
+    function sync() {
+      const isOthers = degree.value === "Others";
+      wrap.classList.toggle("show", isOthers);
+      input.disabled = !isOthers;
+      input.required = isOthers;
+      if (!isOthers) {
+        input.value = "";                  // never submitted unless "Others" is picked
+        DS.clearFieldError("degree_specialization_other");
+      }
+      updateProgress();
+    }
+
+    degree.addEventListener("change", sync);
+    sync();
   }
   /* ------------------------------------------------------------------ */
   /* Occupation → Institution (§11)                                      */
@@ -495,6 +521,14 @@
           true);
         DS.focusFirstError();
         return;
+      }
+
+      // "Others" is a placeholder value — the student's actual typed
+      // specialization is what gets saved and shown everywhere else.
+      if (data.degree_specialization === "Others") {
+        data.degree_specialization = $("degree_specialization_other")
+          ? $("degree_specialization_other").value.trim()
+          : "";
       }
 
       setSubmitting(true, "Preparing your documents…");

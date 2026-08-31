@@ -302,8 +302,12 @@ window.DS = window.DS || {};
     },
 
     ews_category: (v) => (!v ? "Please answer the EWS question." : null),
+    training_centre_preference: (v) => (!v ? "Please select your training centre preference." : null),
     last_completed_education: (v) => (!v ? "Please select your last completed education." : null),
         degree_specialization: (v) => (!v ? "Please select your degree / specialization." : null),
+    degree_specialization_other: (v, form) =>
+      (form.degree_specialization === "Others" && !v.trim())
+        ? "Please specify your degree / specialization." : null,
     annual_income: (v) => (!v ? "Please select your annual income bracket." : null),
     occupation: (v) => (!v ? "Please select your occupation." : null),
 
