@@ -218,11 +218,13 @@
     const course = $("courseFilter").value;
     const education = $("educationFilter").value;
     const state = $("stateFilter").value;
+    const trainingCentre = $("trainingCentreFilter").value;
     const date = $("dateFilter").value; // yyyy-mm-dd
     return registrations.filter((r) => {
       if (course && r.domain_course !== course) return false;
       if (education && r.last_completed_education !== education) return false;
       if (state && r.beneficiary_state !== state) return false;
+      if (trainingCentre && r.training_centre_preference !== trainingCentre) return false;
       if (date && (r.created_at || "").slice(0, 10) !== date) return false;
       if (!term) return true;
       return [r.mafoi_id, r.first_name, r.last_name, r.email, r.contact_number]
@@ -314,12 +316,14 @@
     $("courseFilter").addEventListener("change", renderTable);
     $("educationFilter").addEventListener("change", renderTable);
     $("stateFilter").addEventListener("change", renderTable);
+    $("trainingCentreFilter").addEventListener("change", renderTable);
     $("dateFilter").addEventListener("change", renderTable);
     $("clearFiltersBtn").addEventListener("click", function () {
       $("searchInput").value = "";
       $("courseFilter").value = "";
       $("educationFilter").value = "";
       $("stateFilter").value = "";
+      $("trainingCentreFilter").value = "";
       $("dateFilter").value = "";
       renderTable();
     });
